@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrigtwohill Parish — Historical Places Map</title>
+  <meta name="description" content="An interactive map of historical places in Carrigtwohill Parish, Co. Cork." />
+
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/map.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-text">
+      <h1>Carrigtwohill Parish — Historical Places</h1>
+      <p class="tagline">An interactive map of local history</p>
+    </div>
+    <button type="button" id="edit-toggle-btn" class="edit-toggle-btn" aria-pressed="false" title="Toggle edit mode — double-click the map to drop a pin">Edit</button>
+  </header>
+
+  <main>
+    <div id="map" role="region" aria-label="Interactive map of historical places"></div>
+
+    <div id="map-loading" class="map-loading" hidden>Loading places…</div>
+    <div id="map-error" class="map-error" role="alert" hidden></div>
+    <div id="edit-mode-indicator" class="edit-mode-indicator" hidden>
+      Edit mode — double-click the map to drop a pin. Right-click a pin to copy or delete.
+    </div>
+  </main>
+
+  <!-- Preview modal -->
+  <div id="preview-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="preview-title" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" tabindex="-1">
+      <button type="button" class="modal-close" aria-label="Close preview" data-close>&times;</button>
+      <figure class="modal-figure" hidden>
+        <img id="preview-image" alt="" />
+        <figcaption id="preview-caption"></figcaption>
+      </figure>
+      <h2 id="preview-title"></h2>
+      <p id="preview-text"></p>
+      <p class="modal-actions">
+        <a id="preview-link" href="#" target="_blank" rel="noopener" class="btn-primary">
+          Further Information
+          <span aria-hidden="true">↗</span>
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Edit-pin entry modal -->
+  <div id="editpin-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editpin-title" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" tabindex="-1">
+      <button type="button" class="modal-close" aria-label="Close" data-close>&times;</button>
+      <h2 id="editpin-title">Add a pin</h2>
+      <form id="editpin-form" novalidate>
+        <label for="editpin-name">Place name <span aria-hidden="true">*</span></label>
+        <input type="text" id="editpin-name" name="name" autocomplete="off" required />
+        <label for="editpin-desc">Description <span class="field-hint">(optional)</span></label>
+        <input type="text" id="editpin-desc" name="description" autocomplete="off" />
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" data-cancel>Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Context menu for user-placed pins -->
+  <div id="pin-context" class="pin-context" role="menu" hidden>
+    <button type="button" role="menuitem" data-action="copy">Copy for WhatsApp</button>
+    <button type="button" role="menuitem" data-action="delete">Delete pin</button>
+  </div>
+
+  <footer class="site-footer">
+    <p>&copy; Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.</p>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js" crossorigin="anonymous"></script>
+  <script src="js/data-loader.js"></script>
+  <script src="js/map.js"></script>
+</body>
+</html>

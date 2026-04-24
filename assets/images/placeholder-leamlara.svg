@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <rect width="800" height="400" fill="#ece4d2" />
+  <rect x="200" y="160" width="400" height="160" fill="#d9cdb0" stroke="#7a3b2e" stroke-width="2" />
+  <polygon points="180,160 400,80 620,160" fill="#7a3b2e" />
+  <rect x="380" y="230" width="40" height="90" fill="#3b1a13" />
+  <rect x="250" y="200" width="40" height="40" fill="#f6f1e6" stroke="#7a3b2e" />
+  <rect x="310" y="200" width="40" height="40" fill="#f6f1e6" stroke="#7a3b2e" />
+  <rect x="450" y="200" width="40" height="40" fill="#f6f1e6" stroke="#7a3b2e" />
+  <rect x="510" y="200" width="40" height="40" fill="#f6f1e6" stroke="#7a3b2e" />
+  <text x="400" y="370" text-anchor="middle" font-family="Georgia, serif" font-size="20" fill="#5a2a20" font-style="italic">Leamlara House — placeholder image</text>
+</svg>

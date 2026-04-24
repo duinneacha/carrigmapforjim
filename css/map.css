@@ -1,0 +1,421 @@
+:root {
+  --ink: #1c1a17;
+  --ink-soft: #3d3a35;
+  --paper: #f6f1e6;
+  --paper-2: #ece4d2;
+  --accent: #7a3b2e;
+  --accent-dark: #5a2a20;
+  --rule: #c9bfa8;
+  --focus: #2b6cb0;
+  --shadow: 0 12px 32px rgba(28, 26, 23, 0.28);
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-header {
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.site-header-text {
+  min-width: 0;
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.01em;
+}
+
+.site-header .tagline {
+  margin: 0.25rem 0 0;
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+main {
+  flex: 1;
+  position: relative;
+  display: flex;
+  min-height: 0;
+}
+
+#map {
+  flex: 1;
+  min-height: 60vh;
+  background: #000;
+}
+
+.map-loading,
+.map-error {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  font-size: 0.95rem;
+}
+
+.map-error { background: #fff3f1; color: #7a1f12; border: 1px solid #7a1f12; }
+
+/* MapLibre control polish */
+.maplibregl-ctrl-group {
+  font-family: Georgia, serif;
+}
+
+.base-layer-switcher {
+  display: flex;
+  box-shadow: 0 2px 6px rgba(28, 26, 23, 0.35);
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.base-layer-btn {
+  background: #fff;
+  border: 0;
+  padding: 0.55rem 1.1rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 5.5rem;
+  text-align: center;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.base-layer-btn + .base-layer-btn {
+  border-left: 1px solid var(--ink);
+}
+
+.base-layer-btn:hover:not(.is-active) {
+  background: var(--paper-2);
+  color: var(--accent-dark);
+}
+
+.base-layer-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 var(--accent-dark);
+}
+
+.base-layer-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+/* Custom DOM marker (button with an SVG background) */
+.map-pin {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: block;
+  cursor: pointer;
+}
+
+.map-pin:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* User-placed (temporary) pin — blue teardrop w/ plus, right-click for menu */
+.map-pin-user {
+  cursor: context-menu;
+}
+
+/* Edit-mode toggle — lives in the site header, not a map control */
+.edit-toggle-btn {
+  background: #fff;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  padding: 0.5rem 1.1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 5.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(28, 26, 23, 0.18);
+  transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+  flex-shrink: 0;
+}
+
+.edit-toggle-btn:hover:not(.is-active) {
+  background: var(--paper);
+  color: var(--accent-dark);
+}
+
+.edit-toggle-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent-dark);
+  box-shadow: inset 0 -3px 0 var(--accent-dark), 0 1px 3px rgba(28, 26, 23, 0.25);
+}
+
+.edit-toggle-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Banner shown while edit mode is active */
+.edit-mode-indicator {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 450;
+  max-width: calc(100% - 2rem);
+  background: var(--accent);
+  color: #fff;
+  padding: 0.55rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+
+.edit-mode-indicator[hidden] { display: none; }
+
+/* Edit-pin entry form */
+#editpin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#editpin-form label {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin-top: 0.3rem;
+}
+
+#editpin-form .field-hint {
+  font-weight: 400;
+  font-style: italic;
+}
+
+#editpin-form input {
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--ink);
+}
+
+#editpin-form input:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-color: var(--focus);
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.8rem;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  padding: 0.55rem 1rem;
+  border-radius: 3px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus { background: var(--paper-2); }
+
+/* Context menu for user pins */
+.pin-context {
+  position: fixed;
+  z-index: 1200;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  min-width: 180px;
+  padding: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pin-context[hidden] { display: none; }
+
+.pin-context button {
+  background: transparent;
+  border: 0;
+  padding: 0.5rem 0.9rem;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.pin-context button:hover,
+.pin-context button:focus {
+  background: var(--paper-2);
+  outline: none;
+}
+
+.pin-context button[data-action="delete"] {
+  color: #7a1f12;
+}
+
+.pin-context button[data-action="delete"]:hover,
+.pin-context button[data-action="delete"]:focus {
+  background: #fff3f1;
+}
+
+/* Modal */
+.modal[hidden] { display: none; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modal-panel {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  width: min(540px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 1.25rem;
+  box-shadow: var(--shadow);
+  outline: none;
+}
+
+.modal-panel:focus { box-shadow: var(--shadow), 0 0 0 3px rgba(43, 108, 176, 0.3); }
+
+.modal-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.6rem;
+  background: transparent;
+  border: 0;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+}
+
+.modal-close:hover,
+.modal-close:focus { color: var(--accent); }
+
+.modal-figure {
+  margin: 0 0 1rem;
+}
+
+.modal-figure img {
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  object-fit: cover;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+}
+
+.modal-figure figcaption {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 0.35rem;
+}
+
+#preview-title {
+  margin: 0 2rem 0.5rem 0;
+  font-size: 1.3rem;
+  color: var(--accent-dark);
+}
+
+#preview-text {
+  margin: 0 0 1rem;
+}
+
+.modal-actions { margin: 0; }
+
+.btn-primary {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.55rem 1rem;
+  text-decoration: none;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover,
+.btn-primary:focus { background: var(--accent-dark); }
+
+.site-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  text-align: center;
+  background: var(--paper-2);
+}
+
+@media (max-width: 600px) {
+  .site-header h1 { font-size: 1.2rem; }
+  #map { min-height: 70vh; }
+  .modal-panel { padding: 1.25rem 1rem 1rem; }
+}

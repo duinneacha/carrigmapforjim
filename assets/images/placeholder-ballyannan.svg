@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <rect width="800" height="400" fill="#dad3b8" />
+  <path d="M0 300 L 800 300 L 800 400 L 0 400 Z" fill="#8c9e6e" />
+  <path d="M320 100 L 480 100 L 480 300 L 400 300 L 400 220 L 360 220 L 360 300 L 320 300 Z" fill="#a8947a" stroke="#3b1a13" stroke-width="2" />
+  <path d="M320 100 L 330 80 L 345 100 L 360 80 L 375 100 L 395 80 L 410 100 L 430 80 L 445 100 L 465 80 L 480 100" fill="none" stroke="#3b1a13" stroke-width="3" />
+  <rect x="340" y="150" width="25" height="35" fill="#3b1a13" />
+  <rect x="430" y="150" width="25" height="35" fill="#3b1a13" />
+  <text x="400" y="370" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#3b1a13" font-style="italic">Ballyannan Castle — placeholder image</text>
+</svg>

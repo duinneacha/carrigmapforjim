@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <rect width="800" height="400" fill="#e8ead0" />
+  <path d="M0 280 Q 200 240 400 280 T 800 280 L 800 400 L 0 400 Z" fill="#c9d6a8" />
+  <circle cx="120" cy="260" r="40" fill="#6b8e4e" />
+  <circle cx="680" cy="260" r="50" fill="#6b8e4e" />
+  <circle cx="220" cy="250" r="30" fill="#7fa15a" />
+  <rect x="330" y="200" width="140" height="80" fill="#d9cdb0" stroke="#7a3b2e" stroke-width="2" />
+  <polygon points="320,200 400,160 480,200" fill="#7a3b2e" />
+  <text x="400" y="370" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#5a2a20" font-style="italic">Demesne at Leamlara — placeholder illustration</text>
+</svg>

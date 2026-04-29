@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]:
+        - link "← Back to map" [ref=e5] [cursor=pointer]:
+          - /url: index.html
+      - paragraph [ref=e6]: Carrigtwohill Parish — Historical Places
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Ballyannan Castle" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Castle — House / Castle ruin · Built 1650; ruined by 1786
+      - paragraph [ref=e11]:
+        - generic [ref=e12]: Coordinates
+        - generic [ref=e13]: 51.89694, -8.16928
+        - generic [ref=e14]: ·
+        - link "Open in Google Maps" [ref=e15] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=51.89694,-8.16928
+    - 'figure "Ruin of Ballyannan House / Castle Image: Carrigtwohill Historical Society" [ref=e16]':
+      - img "Photograph of Ballyannan Castle ruins" [ref=e17]
+      - generic [ref=e18]:
+        - text: Ruin of Ballyannan House / Castle
+        - generic [ref=e19]: "Image: Carrigtwohill Historical Society"
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: When coming from Midleton at the roundabout before joining the N25, take a left on the road to Ballyannan and Ballyvodock. The Ruin of Ballyannan House/Castle are on the right.
+      - paragraph [ref=e22]: St John Brodrick’s first occupied the castle built in 1650, in 1786 it was already in ruins, in 1814 it was occupied by Roger Willians at the time of the Griffith Valuation’s it was valued at £9.10 occupied by Daniel Twomey held from Lord Midleton, to the left is a small tidal inlet, which once was a graveyard, just some years ago some bones were found , its also reported when ploughing an nearby field silver spoons were found, There is a cave running from the side of the Castle to Ahanesk
+    - generic [ref=e23]:
+      - heading "Related Places" [level=2] [ref=e24]
+      - list [ref=e25]:
+        - listitem [ref=e26]:
+          - link "Ballyvodock Castle" [ref=e27] [cursor=pointer]:
+            - /url: place.html?id=ballyvodock-castle
+        - listitem [ref=e28]:
+          - link "Leamlara House" [ref=e29] [cursor=pointer]:
+            - /url: place.html?id=leamlara-house
+  - contentinfo [ref=e30]:
+    - paragraph [ref=e31]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

@@ -1,0 +1,35 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - heading "Carrigtwohill Parish — Historical Places" [level=1] [ref=e4]
+      - paragraph [ref=e5]: An interactive map of local history
+    - button "Edit" [ref=e6] [cursor=pointer]
+  - main [ref=e7]:
+    - region "Interactive map of historical places" [ref=e8]:
+      - generic:
+        - region "Map" [ref=e9]
+        - button "Ballyannan Castle" [ref=e10] [cursor=pointer]
+        - button "Ballyvodock Castle" [ref=e11] [cursor=pointer]
+        - button "Leamlara House" [ref=e12] [cursor=pointer]
+        - button "St. Mary's Parish Church, Carrigtwohill" [ref=e13] [cursor=pointer]
+      - generic:
+        - generic:
+          - generic [ref=e14]:
+            - button "Zoom in" [ref=e15] [cursor=pointer]
+            - button "Zoom out" [ref=e17] [cursor=pointer]
+            - button "Reset bearing to north" [ref=e19]
+          - group "Base layer" [ref=e21]:
+            - button "Satellite" [pressed] [ref=e22] [cursor=pointer]
+            - button "Simple" [ref=e23] [cursor=pointer]
+          - button "Townlands" [pressed] [ref=e25] [cursor=pointer]
+          - button "Parishes" [pressed] [ref=e27] [cursor=pointer]
+          - button "Refresh boundaries" [ref=e29] [cursor=pointer]
+        - group [ref=e30]:
+          - generic "Toggle attribution" [ref=e31] [cursor=pointer]
+          - generic [ref=e32]:
+            - text: ©
+            - link "OpenStreetMap" [ref=e36] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/copyright
+            - text: "contributors, ODbL | Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+  - contentinfo [ref=e34]:
+    - paragraph [ref=e35]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

@@ -69,27 +69,74 @@ body {
   font-style: italic;
 }
 
+.place-titleblock {
+  margin: 0 0 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
 .place-title {
-  font-size: 2.1rem;
+  font-size: 2.4rem;
+  line-height: 1.15;
   color: var(--accent-dark);
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.4rem;
   letter-spacing: 0.01em;
 }
 
-.place-meta {
-  margin: 0 0 1.5rem;
+.place-tagline {
+  margin: 0 0 0.6rem;
   color: var(--ink-soft);
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-style: italic;
 }
 
-.place-meta .meta-item { margin-right: 1rem; }
+.place-coords {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
 
-.place-meta .meta-label {
+.place-coords .meta-label {
   font-variant: small-caps;
   letter-spacing: 0.08em;
   color: var(--accent-dark);
+  font-size: 0.75rem;
+  font-style: normal;
+}
+
+.place-coords .coord-value {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 0.8rem;
-  margin-right: 0.3rem;
+}
+
+.place-coords .coord-sep {
+  color: var(--rule);
+}
+
+.place-coords a {
+  color: var(--accent-dark);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+}
+
+.place-coords a:hover,
+.place-coords a:focus {
+  border-bottom-color: var(--accent);
+}
+
+.place-lead {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+  margin: 0 0 1.75rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--rule);
 }
 
 .place-hero {
@@ -99,26 +146,31 @@ body {
 .place-hero img {
   width: 100%;
   height: auto;
-  max-height: 420px;
+  max-height: 460px;
   object-fit: cover;
   display: block;
   border: 1px solid var(--rule);
   border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(28, 26, 23, 0.08);
 }
 
 .place-hero figcaption {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--ink-soft);
   font-style: italic;
-  margin-top: 0.5rem;
+  margin-top: 0.6rem;
+  padding-left: 0.1rem;
+  border-left: 2px solid var(--rule);
+  padding-left: 0.75rem;
 }
 
 .place-hero .attribution {
   font-style: normal;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   display: block;
   color: var(--ink-soft);
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
+  letter-spacing: 0.02em;
 }
 
 .place-section {
@@ -251,6 +303,10 @@ body {
 }
 
 @media (max-width: 600px) {
-  .place-title { font-size: 1.6rem; }
+  .place-title { font-size: 1.75rem; }
+  .place-lead { font-size: 1.05rem; }
   .place { padding: 1.25rem 1rem 2rem; }
+  .place-titleblock { margin-bottom: 1.25rem; padding-bottom: 1rem; }
+  .place-hero img { max-height: 280px; }
+  .place-section h2 { font-size: 1.2rem; }
 }

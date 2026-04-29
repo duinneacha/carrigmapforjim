@@ -2,130 +2,110 @@
   "$comment": "Master data file for the Carrigtwohill Historical Places map. See EDITING_GUIDE.md for a non-developer reference. Text in `blocks` of type `paragraph` is rendered verbatim — do not reformat historian prose.",
   "places": [
     {
-      "id": "leamlara-house",
-      "name": "Leamlara House",
+      "id": "ballyannan-castle",
+      "name": "Ballyannan Castle",
       "pinType": "fort",
-      "location": { "lat": 51.9325, "lng": -8.2010 },
-      "category": "Estate",
-      "type": "House",
-      "dates": { "range": "17th – 20th century" },
-      "preview": "Seat of the Coppinger family, set in wooded demesne north-east of Carrigtwohill. A site of continuous occupation with a complex architectural history.",
-      "lead": "Seat of the Coppinger family for several centuries, Leamlara House stood at the centre of a substantial demesne.",
+      "location": { "lat": 51.89694, "lng": -8.16928 },
+      "category": "Castle",
+      "type": "House / Castle ruin",
+      "dates": { "range": "Built 1650; ruined by 1786" },
+      "preview": "When coming from Midleton at the roundabout before joining the N25, take a left on the road to Ballyannan and Ballyvodock.",
       "images": [
         {
-          "src": "assets/images/placeholder-leamlara.svg",
-          "alt": "Historic view of Leamlara House",
-          "caption": "Leamlara House, early twentieth century",
-          "attribution": "Carrigtwohill Historical Society archive"
+          "src": "assets/images/ballyannan-castle-01.jpeg",
+          "alt": "Photograph of Ballyannan Castle ruins",
+          "caption": "Ruin of Ballyannan House / Castle",
+          "attribution": "Carrigtwohill Historical Society"
         }
       ],
       "sections": [
         {
-          "title": "Origins",
           "blocks": [
             {
               "type": "paragraph",
-              "text": "The lands of Leamlara came into the possession of the Coppinger family in the seventeenth century, following a period of considerable upheaval in the region. The family, of Hiberno-Norse origin and long established in Cork, remained Catholic throughout the penal period and retained the estate through various legal arrangements."
+              "text": "When coming from Midleton at the roundabout before joining the N25, take a left on the road to Ballyannan and Ballyvodock. The Ruin of Ballyannan House/Castle are on the right. "
             },
             {
               "type": "paragraph",
-              "text": "The original house on the site was a fortified dwelling, successive rebuildings masking but not entirely effacing its earlier fabric."
+              "text": "St John Brodrick’s first occupied the castle built in 1650, in 1786 it was already in ruins, in 1814 it was occupied by Roger Willians at the time of the Griffith Valuation’s it was valued at £9.10 occupied by Daniel Twomey held from Lord Midleton, to the left is a small tidal inlet, which once was a graveyard, just some years ago some bones were found , its also reported when ploughing an nearby field silver spoons were found, There is a cave running from the side of the Castle to Ahanesk"
             }
           ]
-        },
+        }
+      ],
+      "relatedPlaces": ["ballyvodock-castle", "leamlara-house"]
+    },
+
+    {
+      "id": "ballyvodock-castle",
+      "name": "Ballyvodock Castle",
+      "pinType": "fort",
+      "location": { "lat": 51.88781, "lng": -8.21161 },
+      "category": "Castle",
+      "type": "14th-century ruin",
+      "dates": { "range": "14th century" },
+      "preview": "We take the road to Ballyvodock taking the turn for Ahanesk and come to Ballyvodock Castle ruin, and nearby Ahanesk House.",
+      "images": [
         {
-          "title": "The House",
+          "src": "assets/images/ballyvodock-castle-01.jpg",
+          "alt": "Photograph of Ballyvodock Castle ruins",
+          "caption": "Ballyvodock Castle ruin",
+          "attribution": "Carrigtwohill Historical Society"
+        }
+      ],
+      "sections": [
+        {
           "blocks": [
             {
               "type": "paragraph",
-              "text": "The main block as it stood in the nineteenth century was a two-storey Georgian house of seven bays, with a central pedimented entrance and low wings extending to either side. A walled garden to the south, and extensive plantings of beech and oak to the north, framed the approach."
+              "text": "We take the road to Ballyvodock taking the turn for Ahanesk and cone to Ballyvodock Castle ruin, and nearby Ahanesk House, these townlands were part of the old Parish of Mogeesha, the Castle a 14th century ruin built by the Hodnett family to guard the entrance to the Great Island, which later fell under the control of the Barrys, it features a commanding position on a headland in Cork Harbour, with what remains near East Ferry"
+            }
+          ]
+        }
+      ],
+      "relatedPlaces": ["ballyannan-castle", "leamlara-house"]
+    },
+
+    {
+      "id": "leamlara-house",
+      "name": "Leamlara House",
+      "pinType": "fort",
+      "location": { "lat": 51.96623, "lng": -8.26977 },
+      "category": "Estate",
+      "type": "Country house (demolished)",
+      "dates": { "range": "Demolished 1950s" },
+      "preview": "Leamlara House was located midway between Carrigtwohill village and Watergrasshill.",
+      "images": [
+        {
+          "src": "assets/images/leamlara-house-01.jpg",
+          "alt": "Photograph of Leamlara House",
+          "caption": "Leamlara House",
+          "attribution": "Carrigtwohill Historical Society"
+        }
+      ],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Leamlara House was located midway between Carrigtwohill village and Watergrasshill, In the late 1950’s the estate was sold to the Land Commission who divided it up and sold the land to farmers, the owner of this estate was Standish Barry at one time an MP. The main entrance was off  the Leamlara road, there was a handsome set of gates and pillars and across the road a gate lodge built of cut limestone"
             },
             {
               "type": "image",
               "image": {
-                "src": "assets/images/placeholder-leamlara-grounds.svg",
-                "alt": "Drawing of Leamlara House and grounds",
-                "caption": "The demesne at Leamlara, showing walled garden and approach",
-                "attribution": "Sketch by J. Coppinger, c. 1880"
+                "src": "assets/images/leamlara-house-02.jpg",
+                "alt": "Photograph of Leamlara House",
+                "caption": "Leamlara House",
+                "attribution": "Carrigtwohill Historical Society"
               }
-            }
-          ],
-          "subsections": [
-            {
-              "title": "Interior",
-              "blocks": [
-                {
-                  "type": "paragraph",
-                  "text": "The principal reception rooms were ranged along the south front, with the drawing room, dining room and library opening one into the next. A fine plaster ceiling in the drawing room survived into the twentieth century."
-                }
-              ]
             },
-            {
-              "title": "Demesne",
-              "blocks": [
-                {
-                  "type": "paragraph",
-                  "text": "The surrounding demesne included a deer park, fish pond, and an avenue of limes planted in the eighteenth century. Outlying farms were worked by tenants under the usual arrangements of the period."
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "title": "Decline",
-          "blocks": [
             {
               "type": "paragraph",
-              "text": "Like many Irish country houses, Leamlara entered a period of contraction in the early twentieth century. The house was reduced in size, and the demesne eventually broken up. The site remains of considerable interest to the local community."
-            },
-            {
-              "type": "quote",
-              "text": "There was never a finer avenue of limes in the district, and the loss of them was felt by every man and woman who had walked beneath their shade.\n— Local recollection, recorded 1962"
+              "text": "There were extensive lawns and gardens with a lake formed by the Leamlara river, at one time in the late 1800’s it was proposed to build a reservoir at this Lake to supply drinking water to the towns of Cobh and Midleton along with Carrigtwohill, however agreement could not be reached and the proposal was abandoned. An electricity generator was installed, powered by water from the lake which supplied DC current to the house. When the Estate was divided up the house was demolished "
             }
           ]
         }
       ],
-      "relatedPlaces": ["ballyannan-castle"],
-      "sources": [
-        { "author": "Bence-Jones, M.", "title": "A Guide to Irish Country Houses", "publication": "Constable", "year": "1988" },
-        { "author": "Coppinger, W. A.", "title": "History of the Coppingers of Cork", "year": "1884" },
-        "Carrigtwohill Historical Society archive, file LEA/1–12"
-      ]
-    },
-
-    {
-      "id": "ballyannan-castle",
-      "name": "Ballyannan Castle",
-      "pinType": "fort",
-      "location": { "lat": 51.895652, "lng": -8.1938292 },
-      "category": "Castle",
-      "type": "Tower house",
-      "preview": "About two miles from Midleton stands the ruins of a well-known castle...",
-      "images": [
-        {
-          "src": "assets/images/placeholder-ballyannan.svg",
-          "alt": "Ruins of Ballyannan Castle",
-          "caption": "Ballyannan Castle (placeholder image; source: Carrigtwohill Historical Society)"
-        }
-      ],
-      "sections": [
-        {
-          "title": "The Castle",
-          "blocks": [
-            {
-              "type": "paragraph",
-              "text": "Ballyannan Castle was a tower house of the Barry family, built in the late fifteenth or early sixteenth century on the northern margin of what is now Ballyannan Wood. It commanded views over the inlet and the approach from the east."
-            },
-            {
-              "type": "paragraph",
-              "text": "By the middle of the seventeenth century the castle had been abandoned and reduced to a ruinous state. Today only fragments of the masonry remain, partly obscured by tree cover."
-            }
-          ]
-        }
-      ],
-      "sources": [
-        "Nora O Mahony of Cork Road Midleton, as told to her by her father in 1936 — Dúchas / Schools' Collection: https://www.duchas.ie/en/cbes/4921918/4910884/5166111"
-      ]
+      "relatedPlaces": ["ballyannan-castle", "ballyvodock-castle"]
     },
 
     {

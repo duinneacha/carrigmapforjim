@@ -1,0 +1,27 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - heading "Carrigtwohill Parish — Historical Places" [level=1] [ref=e4]
+      - paragraph [ref=e5]: An interactive map of local history
+    - button "Edit" [ref=e6] [cursor=pointer]
+  - main [ref=e7]:
+    - region "Interactive map of historical places" [ref=e8]:
+      - generic:
+        - region "Map" [ref=e9]
+        - button "Leamlara House" [ref=e10] [cursor=pointer]
+        - button "Ballyannan Castle" [ref=e11] [cursor=pointer]
+        - button "St. Mary's Parish Church, Carrigtwohill" [ref=e12] [cursor=pointer]
+      - generic:
+        - generic:
+          - generic [ref=e13]:
+            - button "Zoom in" [ref=e14] [cursor=pointer]
+            - button "Zoom out" [ref=e16] [cursor=pointer]
+            - button "Reset bearing to north" [ref=e18]
+          - group "Base layer" [ref=e20]:
+            - button "Satellite" [pressed] [ref=e21] [cursor=pointer]
+            - button "Simple" [ref=e22] [cursor=pointer]
+        - group [ref=e23]:
+          - generic "Toggle attribution" [ref=e24] [cursor=pointer]
+          - generic [ref=e25]: "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+  - contentinfo [ref=e26]:
+    - paragraph [ref=e27]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

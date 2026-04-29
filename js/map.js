@@ -86,62 +86,324 @@
     if (e.target.matches('[data-close]')) closeModal();
   });
 
+  // --- Boundary data: load + cache --------------------------------------
+  // cork_townlands.geojson is ~25 MB — too large for localStorage's ~5 MB
+  // quota. The Cache API is the right tool: many MB of capacity, scoped per
+  // origin, accessible from the page (no service worker required). We use
+  // localStorage solely for the small timestamp and the derived
+  // townland→parish lookup map.
+
+  const TOWNLANDS_URL = 'data/cork_townlands.geojson';
+  const PARISHES_URL = 'data/parishes.geojson';
+  const CACHE_NAME = 'jimmap-boundaries-v1';
+  const TS_KEY_TOWNLANDS = 'cork_townlands_cache_ts';
+  const TS_KEY_PARISHES = 'cork_parishes_cache_ts';
+  const PARISH_MAP_KEY = 'cork_townland_parish_map_v1';
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function lsGet(key) {
+    try { return localStorage.getItem(key); } catch (_) { return null; }
+  }
+  function lsSet(key, value) {
+    try { localStorage.setItem(key, value); } catch (_) { /* quota / disabled */ }
+  }
+  function lsDel(key) {
+    try { localStorage.removeItem(key); } catch (_) {}
+  }
+
+  async function fetchJsonWithCache(url, tsKey, opts) {
+    const force = !!(opts && opts.force);
+    const ts = parseInt(lsGet(tsKey) || '0', 10);
+    const fresh = !force && ts > 0 && (Date.now() - ts) < SEVEN_DAYS_MS;
+
+    if ('caches' in window) {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        if (fresh) {
+          const cached = await cache.match(url);
+          if (cached) return cached.json();
+        }
+        const resp = await fetch(url, { cache: 'no-cache' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' for ' + url);
+        await cache.put(url, resp.clone());
+        lsSet(tsKey, String(Date.now()));
+        return resp.json();
+      } catch (e) {
+        // If network fails but we have a stale cache entry, prefer that over erroring.
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          const cached = await cache.match(url);
+          if (cached) return cached.json();
+        } catch (_) {}
+        throw e;
+      }
+    }
+
+    // Cache API unavailable (rare). Fall back to plain fetch — browser HTTP
+    // cache will at least serve the second hit from disk.
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status + ' for ' + url);
+    return resp.json();
+  }
+
+  // --- Townland → parish lookup -----------------------------------------
+  // cork_townlands.geojson does NOT carry parish info, so we compute it
+  // ourselves via centroid point-in-polygon against parishes.geojson, then
+  // cache the small (osm_id → parish name) map in localStorage. ~5300
+  // entries, average ~30 bytes each, comfortably fits the quota.
+
+  function ringContains(ring, x, y) {
+    // Standard ray-casting. ring: [[lng, lat], ...]
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j][0], yj = ring[j][1];
+      const intersect = ((yi > y) !== (yj > y)) &&
+        (x < (xj - xi) * (y - yi) / ((yj - yi) || 1e-12) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  function polygonContains(polygon, x, y) {
+    // polygon: [outerRing, hole1, hole2, ...]
+    if (!polygon.length || !ringContains(polygon[0], x, y)) return false;
+    for (let i = 1; i < polygon.length; i++) {
+      if (ringContains(polygon[i], x, y)) return false;
+    }
+    return true;
+  }
+
+  function geometryContains(geom, x, y) {
+    if (!geom) return false;
+    if (geom.type === 'Polygon') return polygonContains(geom.coordinates, x, y);
+    if (geom.type === 'MultiPolygon') {
+      for (const p of geom.coordinates) {
+        if (polygonContains(p, x, y)) return true;
+      }
+    }
+    return false;
+  }
+
+  function bboxOfGeometry(geom) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const visit = (coords) => {
+      for (const c of coords) {
+        if (typeof c[0] === 'number') {
+          if (c[0] < minX) minX = c[0];
+          if (c[0] > maxX) maxX = c[0];
+          if (c[1] < minY) minY = c[1];
+          if (c[1] > maxY) maxY = c[1];
+        } else {
+          visit(c);
+        }
+      }
+    };
+    if (geom && geom.coordinates) visit(geom.coordinates);
+    return [minX, minY, maxX, maxY];
+  }
+
+  function representativePoint(geom) {
+    // Cheap centroid-of-largest-ring. Good enough to land inside the polygon
+    // for the kinds of shapes townlands have (no extreme C-curves).
+    if (!geom) return null;
+    let largestRing = null, largestArea = -Infinity;
+    const consider = (ring) => {
+      // |signed area| via shoelace
+      let a = 0;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        a += (ring[j][0] + ring[i][0]) * (ring[j][1] - ring[i][1]);
+      }
+      const area = Math.abs(a) * 0.5;
+      if (area > largestArea) { largestArea = area; largestRing = ring; }
+    };
+    if (geom.type === 'Polygon') consider(geom.coordinates[0]);
+    else if (geom.type === 'MultiPolygon') {
+      for (const poly of geom.coordinates) consider(poly[0]);
+    }
+    if (!largestRing) return null;
+    let sx = 0, sy = 0;
+    for (const pt of largestRing) { sx += pt[0]; sy += pt[1]; }
+    return [sx / largestRing.length, sy / largestRing.length];
+  }
+
+  function buildTownlandParishMap(townlands, parishes) {
+    // Pre-compute parish bboxes so we can early-exit most pairings.
+    const parishIndex = parishes.features.map((p) => ({
+      name: (p.properties && p.properties.name) || '',
+      geom: p.geometry,
+      bbox: bboxOfGeometry(p.geometry)
+    }));
+
+    const map = Object.create(null);
+    for (const f of townlands.features) {
+      const id = f.properties && f.properties.osm_id;
+      if (id == null) continue;
+      const pt = representativePoint(f.geometry);
+      if (!pt) continue;
+      const x = pt[0], y = pt[1];
+      for (const p of parishIndex) {
+        const b = p.bbox;
+        if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+        if (geometryContains(p.geom, x, y)) { map[id] = p.name; break; }
+      }
+    }
+    return map;
+  }
+
+  function getCachedParishMap() {
+    const raw = lsGet(PARISH_MAP_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (_) { return null; }
+  }
+
+  function annotateTownlandsWithParish(townlands, parishMap) {
+    for (const f of townlands.features) {
+      const id = f.properties && f.properties.osm_id;
+      const parish = (id != null && parishMap[id]) ? parishMap[id] : '';
+      f.properties.parish = parish;
+    }
+  }
+
+  // --- Layer definitions -------------------------------------------------
+
+  const TOWNLAND_LAYER_IDS = ['townland-fill', 'townland-outline'];
+  const PARISH_LAYER_IDS = ['parish-outline-casing', 'parish-outline'];
+
+  function townlandLayers() {
+    return [
+      {
+        id: 'townland-fill',
+        type: 'fill',
+        source: 'townlands',
+        paint: {
+          'fill-color': '#ffffff',
+          'fill-opacity': 0.05
+        }
+      },
+      {
+        id: 'townland-outline',
+        type: 'line',
+        source: 'townlands',
+        paint: {
+          'line-color': '#ffffff',
+          'line-opacity': 0.9,
+          'line-width': 1
+        }
+      }
+    ];
+  }
+
+  function parishLayers() {
+    return [
+      // Dark casing under the yellow so the line reads on both the dark
+      // satellite imagery and the cream OSM basemap.
+      {
+        id: 'parish-outline-casing',
+        type: 'line',
+        source: 'parishes',
+        paint: {
+          'line-color': '#1c1a17',
+          'line-opacity': 0.55,
+          'line-width': 4.5
+        }
+      },
+      {
+        id: 'parish-outline',
+        type: 'line',
+        source: 'parishes',
+        paint: {
+          'line-color': '#ffdd00',
+          'line-opacity': 1,
+          'line-width': 2.5
+        }
+      }
+    ];
+  }
+
   // --- Styles ------------------------------------------------------------
   // Raster tile styles; no API key required. The top-level `projection: globe`
   // gives the curved-earth aesthetic on zoomed-out views while automatically
   // falling back to a flat projection as the user zooms in.
 
-  const SATELLITE_STYLE = {
-    version: 8,
-    projection: { type: 'globe' },
-    sources: {
-      'esri-imagery': {
-        type: 'raster',
-        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution: 'Tiles &copy; Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-      },
-      'esri-reference': {
-        type: 'raster',
-        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
-        tileSize: 256,
-        maxzoom: 19
-      }
-    },
-    layers: [
-      { id: 'background', type: 'background', paint: { 'background-color': '#000' } },
-      { id: 'esri-imagery', type: 'raster', source: 'esri-imagery' },
-      { id: 'esri-reference', type: 'raster', source: 'esri-reference' }
-    ]
-  };
+  const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ODbL';
+  const ESRI_ATTRIBUTION = 'Tiles &copy; Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
 
-  const SIMPLE_STYLE = {
-    version: 8,
-    projection: { type: 'globe' },
-    sources: {
-      osm: {
-        type: 'raster',
-        tiles: [
-          'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        ],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }
-    },
-    layers: [
-      { id: 'background', type: 'background', paint: { 'background-color': '#f6f1e6' } },
-      { id: 'osm', type: 'raster', source: 'osm' }
-    ]
-  };
+  // Boundary sources are kept as empty FeatureCollections at style-definition
+  // time and populated via map.getSource(...).setData(...) once the async
+  // load completes. Embedding the URL directly would bypass our Cache API
+  // logic and force a re-download on every basemap switch.
+  function emptyFC() { return { type: 'FeatureCollection', features: [] }; }
+
+  function buildStyle(kind) {
+    const base = kind === 'simple'
+      ? {
+          background: '#f6f1e6',
+          sources: {
+            osm: {
+              type: 'raster',
+              tiles: [
+                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+              ],
+              tileSize: 256,
+              maxzoom: 19,
+              attribution: OSM_ATTRIBUTION
+            }
+          },
+          baseLayers: [
+            { id: 'background', type: 'background', paint: { 'background-color': '#f6f1e6' } },
+            { id: 'osm', type: 'raster', source: 'osm' }
+          ]
+        }
+      : {
+          background: '#000',
+          sources: {
+            'esri-imagery': {
+              type: 'raster',
+              tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+              tileSize: 256,
+              maxzoom: 19,
+              attribution: ESRI_ATTRIBUTION
+            },
+            'esri-reference': {
+              type: 'raster',
+              tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
+              tileSize: 256,
+              maxzoom: 19
+            }
+          },
+          baseLayers: [
+            { id: 'background', type: 'background', paint: { 'background-color': '#000' } },
+            { id: 'esri-imagery', type: 'raster', source: 'esri-imagery' }
+          ]
+        };
+
+    return {
+      version: 8,
+      projection: { type: 'globe' },
+      sources: Object.assign({}, base.sources, {
+        townlands: { type: 'geojson', data: emptyFC(), attribution: OSM_ATTRIBUTION },
+        parishes: { type: 'geojson', data: emptyFC(), attribution: OSM_ATTRIBUTION }
+      }),
+      layers: [
+        ...base.baseLayers,
+        ...townlandLayers(),
+        ...parishLayers(),
+        // Esri's labels-and-places overlay (only present in satellite) goes
+        // on top of boundaries so place names remain readable.
+        ...(kind === 'satellite'
+          ? [{ id: 'esri-reference', type: 'raster', source: 'esri-reference' }]
+          : [])
+      ]
+    };
+  }
+
+  const SATELLITE_STYLE = buildStyle('satellite');
+  const SIMPLE_STYLE = buildStyle('simple');
 
   // --- Base layer switcher (custom IControl) ----------------------------
-  // MapLibre has no built-in layer switcher. This small control swaps the
-  // entire style when the user picks Satellite vs Simple. Markers are DOM
-  // elements owned by the Map instance and persist across setStyle() calls.
 
   class BaseLayerSwitcher {
     constructor(layers, initialId) {
@@ -185,19 +447,74 @@
     }
   }
 
+  // --- Boundary visibility toggle (one button per layer set) ------------
+  // Boundary layers live inside both basemap styles (so they survive
+  // setStyle), but visibility is per-layer layout that resets on style swap.
+  // Re-apply on 'style.load'.
+
+  const VIS_KEY_TOWNLANDS = 'jimmap_show_townlands';
+  const VIS_KEY_PARISHES = 'jimmap_show_parishes';
+
+  class BoundaryToggle {
+    constructor(opts) {
+      this._label = opts.label;
+      this._layerIds = opts.layerIds;
+      this._storageKey = opts.storageKey;
+      const stored = lsGet(this._storageKey);
+      this._visible = stored == null ? true : stored !== '0';
+    }
+    onAdd(map) {
+      this._map = map;
+      const el = document.createElement('div');
+      el.className = 'maplibregl-ctrl maplibregl-ctrl-group base-layer-switcher boundary-toggle';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'base-layer-btn' + (this._visible ? ' is-active' : '');
+      btn.setAttribute('aria-pressed', this._visible ? 'true' : 'false');
+      btn.textContent = this._label;
+      btn.addEventListener('click', () => this._toggle());
+      el.appendChild(btn);
+      this._btn = btn;
+      this._el = el;
+
+      this._reapply = () => this._applyVisibility();
+      map.on('style.load', this._reapply);
+
+      return el;
+    }
+    _toggle() {
+      this._visible = !this._visible;
+      this._btn.classList.toggle('is-active', this._visible);
+      this._btn.setAttribute('aria-pressed', this._visible ? 'true' : 'false');
+      lsSet(this._storageKey, this._visible ? '1' : '0');
+      this._applyVisibility();
+    }
+    _applyVisibility() {
+      if (!this._map) return;
+      const value = this._visible ? 'visible' : 'none';
+      this._layerIds.forEach((id) => {
+        if (this._map.getLayer(id)) {
+          this._map.setLayoutProperty(id, 'visibility', value);
+        }
+      });
+    }
+    onRemove() {
+      if (this._map && this._reapply) this._map.off('style.load', this._reapply);
+      if (this._el && this._el.parentNode) this._el.parentNode.removeChild(this._el);
+      this._map = undefined;
+    }
+  }
+
   // --- Edit mode: user-placed pins --------------------------------------
-  // Client-side only. No persistence, no places.json mutation. Pins exist
-  // for the lifetime of the page; Jim's workflow is "drop, copy, paste to
-  // WhatsApp, forget".
 
   const USER_PIN_ICON = 'assets/icons/user-pin.svg';
   const USER_PIN_SIZE = [36, 42];
   const STORAGE_KEY = 'jimmap_user_pins';
 
-  const userPins = new Map(); // id -> { marker, el, name, description, lng, lat }
+  const userPins = new Map();
   let userPinSeq = 0;
   let editMode = false;
-  let pendingLngLat = null; // lng/lat of pin awaiting the name/description form
+  let pendingLngLat = null;
 
   const editToggleBtn = document.getElementById('edit-toggle-btn');
   editToggleBtn.addEventListener('click', () => toggleEditMode());
@@ -215,17 +532,12 @@
     setEditToggleActive(editMode);
     document.getElementById('edit-mode-indicator').hidden = !editMode;
     if (editMode) {
-      // Reclaim double-click from MapLibre's default zoom
       if (map.doubleClickZoom) map.doubleClickZoom.disable();
     } else {
       if (map.doubleClickZoom) map.doubleClickZoom.enable();
       closePinContextMenu();
     }
   }
-
-  // --- localStorage persistence -----------------------------------------
-  // Stored shape: [{ name, description, lat, lng }, ...]. In-memory ids
-  // are regenerated on each load — they're purely for lookup, not identity.
 
   function persistUserPins() {
     try {
@@ -329,8 +641,6 @@
     closeEditPinModal();
   });
 
-  // --- User-pin creation + context menu ---------------------------------
-
   function createUserPin(opts) {
     const id = 'user-pin-' + (++userPinSeq);
     const el = document.createElement('div');
@@ -346,7 +656,6 @@
       e.stopPropagation();
       openPinContextMenu(e.clientX, e.clientY, id);
     });
-    // Left-click does nothing — user pins are temporary, no detail page.
     el.addEventListener('click', (e) => { e.stopPropagation(); });
 
     const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
@@ -371,7 +680,6 @@
   function openPinContextMenu(x, y, id) {
     pinContextId = id;
     pinContextEl.hidden = false;
-    // Measure after unhiding to clamp within the viewport
     const rect = pinContextEl.getBoundingClientRect();
     const maxX = window.innerWidth - rect.width - 6;
     const maxY = window.innerHeight - rect.height - 6;
@@ -414,8 +722,6 @@
   });
 
   function formatPinText(pin) {
-    // "Place Name | longitude, latitude | Description"
-    // Description omitted when empty to avoid a dangling separator.
     const lng = Number(pin.lng).toFixed(7);
     const lat = Number(pin.lat).toFixed(7);
     const parts = [pin.name, lng + ', ' + lat];
@@ -442,6 +748,52 @@
     } else {
       fallback();
     }
+  }
+
+  // --- Hover tooltip -----------------------------------------------------
+
+  const tooltipEl = document.getElementById('townland-tooltip');
+
+  function showTooltip(html, x, y) {
+    tooltipEl.innerHTML = html;
+    tooltipEl.hidden = false;
+    // Position after unhiding so we can measure it.
+    const rect = tooltipEl.getBoundingClientRect();
+    const pad = 14;
+    let left = x + pad;
+    let top = y + pad;
+    if (left + rect.width > window.innerWidth - 4) left = x - rect.width - pad;
+    if (top + rect.height > window.innerHeight - 4) top = y - rect.height - pad;
+    tooltipEl.style.left = Math.max(4, left) + 'px';
+    tooltipEl.style.top = Math.max(4, top) + 'px';
+  }
+
+  function hideTooltip() {
+    tooltipEl.hidden = true;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function attachTooltipHandlers(map) {
+    const onMove = (e) => {
+      if (!map.getLayer('townland-fill')) { hideTooltip(); return; }
+      const features = map.queryRenderedFeatures(e.point, { layers: ['townland-fill'] });
+      if (!features.length) { hideTooltip(); return; }
+      const props = features[0].properties || {};
+      const name = props.name || 'Unknown townland';
+      const parish = props.parish || '';
+      const html = '<strong>' + escapeHtml(name) + '</strong>' +
+        (parish ? '<br><span class="t-sub">Parish of ' + escapeHtml(parish) + '</span>' : '');
+      const orig = e.originalEvent;
+      showTooltip(html, orig.clientX, orig.clientY);
+    };
+    map.on('mousemove', onMove);
+    map.on('mouseout', hideTooltip);
+    map.getCanvas().addEventListener('mouseleave', hideTooltip);
   }
 
   // --- Map ---------------------------------------------------------------
@@ -473,6 +825,20 @@
       ),
       'top-right'
     );
+    map.addControl(new BoundaryToggle({
+      label: 'Townlands',
+      layerIds: TOWNLAND_LAYER_IDS,
+      storageKey: VIS_KEY_TOWNLANDS
+    }), 'top-right');
+    map.addControl(new BoundaryToggle({
+      label: 'Parishes',
+      layerIds: PARISH_LAYER_IDS,
+      storageKey: VIS_KEY_PARISHES
+    }), 'top-right');
+
+    map.on('error', (e) => {
+      console.error('[map error]', e && e.error ? e.error : e);
+    });
     map.on('dblclick', onMapDblClick);
 
     return map;
@@ -541,11 +907,57 @@
     else map.once('load', applyBounds);
   }
 
+  // --- Boundary load orchestration --------------------------------------
+  // Loaded data is stashed in module scope so re-applying after a basemap
+  // switch (which wipes the geojson sources) doesn't require another fetch.
+
+  let townlandsData = null;
+  let parishesData = null;
+
+  function applyBoundaryDataToMap(map) {
+    const tSrc = map.getSource('townlands');
+    if (tSrc && townlandsData) tSrc.setData(townlandsData);
+    const pSrc = map.getSource('parishes');
+    if (pSrc && parishesData) pSrc.setData(parishesData);
+  }
+
+  async function loadBoundaries(opts) {
+    const force = !!(opts && opts.force);
+    if (force) {
+      lsDel(TS_KEY_TOWNLANDS);
+      lsDel(TS_KEY_PARISHES);
+      lsDel(PARISH_MAP_KEY);
+    }
+
+    // Parishes first — small file, needed to compute the townland→parish map.
+    parishesData = await fetchJsonWithCache(PARISHES_URL, TS_KEY_PARISHES, { force });
+    townlandsData = await fetchJsonWithCache(TOWNLANDS_URL, TS_KEY_TOWNLANDS, { force });
+
+    let parishMap = force ? null : getCachedParishMap();
+    if (!parishMap) {
+      parishMap = buildTownlandParishMap(townlandsData, parishesData);
+      lsSet(PARISH_MAP_KEY, JSON.stringify(parishMap));
+    }
+    annotateTownlandsWithParish(townlandsData, parishMap);
+  }
+
   // --- Boot --------------------------------------------------------------
 
   showLoading(true);
   const map = buildMap();
   restoreUserPins();
+  attachTooltipHandlers(map);
+
+  // After every style swap, re-apply visibility (handled by BoundaryToggle)
+  // and re-push the geojson data into the new sources.
+  map.on('style.load', () => applyBoundaryDataToMap(map));
+
+  loadBoundaries()
+    .then(() => applyBoundaryDataToMap(map))
+    .catch((err) => {
+      console.warn('Boundary load failed:', err);
+      // Non-fatal: places still load.
+    });
 
   PlacesData.load()
     .then((data) => {

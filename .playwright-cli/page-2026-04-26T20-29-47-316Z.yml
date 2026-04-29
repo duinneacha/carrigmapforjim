@@ -1,0 +1,34 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]:
+        - link "← Back to map" [ref=e5] [cursor=pointer]:
+          - /url: index.html
+      - paragraph [ref=e6]: Carrigtwohill Parish — Historical Places
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Ballyvodock Castle" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Castle — 14th-century ruin · 14th century
+      - paragraph [ref=e11]:
+        - generic [ref=e12]: Coordinates
+        - generic [ref=e13]: 51.88781, -8.21161
+        - generic [ref=e14]: ·
+        - link "Open in Google Maps" [ref=e15] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=51.88781,-8.21161
+    - 'figure "Ballyvodock Castle ruin Image: Carrigtwohill Historical Society" [ref=e16]':
+      - img "Photograph of Ballyvodock Castle ruins" [ref=e17]
+      - generic [ref=e18]:
+        - text: Ballyvodock Castle ruin
+        - generic [ref=e19]: "Image: Carrigtwohill Historical Society"
+    - paragraph [ref=e21]: We take the road to Ballyvodock taking the turn for Ahanesk and cone to Ballyvodock Castle ruin, and nearby Ahanesk House, these townlands were part of the old Parish of Mogeesha, the Castle a 14th century ruin built by the Hodnett family to guard the entrance to the Great Island, which later fell under the control of the Barrys, it features a commanding position on a headland in Cork Harbour, with what remains near East Ferry
+    - generic [ref=e22]:
+      - heading "Related Places" [level=2] [ref=e23]
+      - list [ref=e24]:
+        - listitem [ref=e25]:
+          - link "Ballyannan Castle" [ref=e26] [cursor=pointer]:
+            - /url: place.html?id=ballyannan-castle
+        - listitem [ref=e27]:
+          - link "Leamlara House" [ref=e28] [cursor=pointer]:
+            - /url: place.html?id=leamlara-house
+  - contentinfo [ref=e29]:
+    - paragraph [ref=e30]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

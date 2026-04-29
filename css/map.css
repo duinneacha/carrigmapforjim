@@ -98,15 +98,17 @@ main {
 .base-layer-btn {
   background: #fff;
   border: 0;
-  padding: 0.55rem 1.1rem;
+  padding: 0.5rem 0.85rem;
   font: inherit;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--ink);
   cursor: pointer;
-  min-width: 5.5rem;
+  min-width: 4.75rem;
+  width: auto;
   text-align: center;
+  white-space: nowrap;
   transition: background-color 0.12s ease, color 0.12s ease;
 }
 
@@ -304,6 +306,37 @@ main {
 .pin-context button[data-action="delete"]:hover,
 .pin-context button[data-action="delete"]:focus {
   background: #fff3f1;
+}
+
+/* Hover tooltip for townland boundaries */
+.townland-tooltip {
+  position: fixed;
+  z-index: 1100;
+  pointer-events: none;
+  background: rgba(20, 18, 14, 0.92);
+  color: #fff;
+  padding: 0.4rem 0.65rem;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  max-width: 18rem;
+}
+
+.townland-tooltip[hidden] { display: none; }
+
+.townland-tooltip strong {
+  font-weight: 700;
+}
+
+.townland-tooltip .t-sub {
+  display: inline-block;
+  margin-top: 0.15rem;
+  font-style: italic;
+  opacity: 0.85;
+  font-size: 0.78rem;
 }
 
 /* Modal */

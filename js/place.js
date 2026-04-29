@@ -111,34 +111,61 @@
     return wrap;
   }
 
-  function renderMeta(place) {
-    const bits = [];
-    if (place.category) bits.push({ label: 'Category', value: place.category });
-    if (place.type) bits.push({ label: 'Type', value: place.type });
+  /** Build the short tagline shown directly under the place name.
+   *  e.g. "Castle — Tower house · late 15th c." */
+  function renderTagline(place) {
+    const parts = [];
+    if (place.category && place.type) {
+      parts.push(place.category + ' — ' + place.type);
+    } else if (place.category) {
+      parts.push(place.category);
+    } else if (place.type) {
+      parts.push(place.type);
+    }
     if (place.dates) {
-      if (place.dates.range) bits.push({ label: 'Period', value: place.dates.range });
+      if (place.dates.range) parts.push(place.dates.range);
       else if (place.dates.from || place.dates.to) {
-        bits.push({
-          label: 'Period',
-          value: [place.dates.from, place.dates.to].filter(Boolean).join(' — ')
-        });
+        parts.push([place.dates.from, place.dates.to].filter(Boolean).join(' — '));
       }
     }
-
-    if (!bits.length) return null;
+    if (!parts.length) return null;
     const p = document.createElement('p');
-    p.className = 'place-meta';
-    bits.forEach((b) => {
-      const span = document.createElement('span');
-      span.className = 'meta-item';
-      const label = document.createElement('span');
-      label.className = 'meta-label';
-      label.textContent = b.label;
-      span.appendChild(label);
-      span.appendChild(document.createTextNode(b.value));
-      p.appendChild(span);
-    });
+    p.className = 'place-tagline';
+    p.textContent = parts.join(' · ');
     return p;
+  }
+
+  function renderCoords(place) {
+    if (!place.location || typeof place.location.lat !== 'number' || typeof place.location.lng !== 'number') {
+      return null;
+    }
+    const { lat, lng } = place.location;
+    const wrap = document.createElement('p');
+    wrap.className = 'place-coords';
+
+    const label = document.createElement('span');
+    label.className = 'meta-label';
+    label.textContent = 'Coordinates';
+    wrap.appendChild(label);
+
+    const value = document.createElement('span');
+    value.className = 'coord-value';
+    value.textContent = lat.toFixed(5) + ', ' + lng.toFixed(5);
+    wrap.appendChild(value);
+
+    const sep = document.createElement('span');
+    sep.className = 'coord-sep';
+    sep.textContent = '·';
+    wrap.appendChild(sep);
+
+    const a = document.createElement('a');
+    a.href = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = 'Open in Google Maps';
+    wrap.appendChild(a);
+
+    return wrap;
   }
 
   function renderRelated(place, all) {
@@ -204,9 +231,16 @@
 
     root.innerHTML = '';
 
-    root.appendChild(textNode('h1', place.name)).className = 'place-title';
-    const meta = renderMeta(place);
-    if (meta) root.appendChild(meta);
+    const titleBlock = document.createElement('header');
+    titleBlock.className = 'place-titleblock';
+    const h1 = textNode('h1', place.name);
+    h1.className = 'place-title';
+    titleBlock.appendChild(h1);
+    const tagline = renderTagline(place);
+    if (tagline) titleBlock.appendChild(tagline);
+    const coords = renderCoords(place);
+    if (coords) titleBlock.appendChild(coords);
+    root.appendChild(titleBlock);
 
     // Hero image — first image in the place's images array
     const hero = (place.images && place.images[0]) || null;
@@ -217,10 +251,6 @@
     if (place.lead) {
       const lead = textNode('p', place.lead);
       lead.className = 'place-lead';
-      lead.style.fontSize = '1.1rem';
-      lead.style.fontStyle = 'italic';
-      lead.style.color = 'var(--ink-soft)';
-      lead.style.whiteSpace = 'pre-wrap';
       root.appendChild(lead);
     }
 

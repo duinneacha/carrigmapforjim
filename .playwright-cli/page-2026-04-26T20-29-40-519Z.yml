@@ -1,0 +1,41 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]:
+        - link "← Back to map" [ref=e5] [cursor=pointer]:
+          - /url: index.html
+      - paragraph [ref=e6]: Carrigtwohill Parish — Historical Places
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Leamlara House" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Estate — Country house (demolished) · Demolished 1950s
+      - paragraph [ref=e11]:
+        - generic [ref=e12]: Coordinates
+        - generic [ref=e13]: 51.96623, -8.26977
+        - generic [ref=e14]: ·
+        - link "Open in Google Maps" [ref=e15] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=51.96623,-8.26977
+    - 'figure "Leamlara House Image: Carrigtwohill Historical Society" [ref=e16]':
+      - img "Photograph of Leamlara House" [ref=e17]
+      - generic [ref=e18]:
+        - text: Leamlara House
+        - generic [ref=e19]: "Image: Carrigtwohill Historical Society"
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: Leamlara House was located midway between Carrigtwohill village and Watergrasshill, In the late 1950’s the estate was sold to the Land Commission who divided it up and sold the land to farmers, the owner of this estate was Standish Barry at one time an MP. The main entrance was off the Leamlara road, there was a handsome set of gates and pillars and across the road a gate lodge built of cut limestone
+      - 'figure "Leamlara House Image: Carrigtwohill Historical Society" [ref=e22]':
+        - img "Photograph of Leamlara House" [ref=e23]
+        - generic [ref=e24]:
+          - text: Leamlara House
+          - generic [ref=e25]: "Image: Carrigtwohill Historical Society"
+      - paragraph [ref=e26]: There were extensive lawns and gardens with a lake formed by the Leamlara river, at one time in the late 1800’s it was proposed to build a reservoir at this Lake to supply drinking water to the towns of Cobh and Midleton along with Carrigtwohill, however agreement could not be reached and the proposal was abandoned. An electricity generator was installed, powered by water from the lake which supplied DC current to the house. When the Estate was divided up the house was demolished
+    - generic [ref=e27]:
+      - heading "Related Places" [level=2] [ref=e28]
+      - list [ref=e29]:
+        - listitem [ref=e30]:
+          - link "Ballyannan Castle" [ref=e31] [cursor=pointer]:
+            - /url: place.html?id=ballyannan-castle
+        - listitem [ref=e32]:
+          - link "Ballyvodock Castle" [ref=e33] [cursor=pointer]:
+            - /url: place.html?id=ballyvodock-castle
+  - contentinfo [ref=e34]:
+    - paragraph [ref=e35]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

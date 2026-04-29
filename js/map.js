@@ -98,7 +98,7 @@
   const CACHE_NAME = 'jimmap-boundaries-v1';
   const TS_KEY_TOWNLANDS = 'cork_townlands_cache_ts';
   const TS_KEY_PARISHES = 'cork_parishes_cache_ts';
-  const PARISH_MAP_KEY = 'cork_townland_parish_map_v1';
+  const PARISH_MAP_KEY = 'cork_townland_parish_map_v2';
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
   function lsGet(key) {

@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]:
+        - link "← Back to map" [ref=e5] [cursor=pointer]:
+          - /url: index.html
+      - paragraph [ref=e6]: Carrigtwohill Parish — Historical Places
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Barrett's Field" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Burial ground — Old burial ground / church site
+      - paragraph [ref=e11]:
+        - generic [ref=e12]: Coordinates
+        - generic [ref=e13]: 51.92271, -8.30333
+        - generic [ref=e14]: ·
+        - link "Open in Google Maps" [ref=e15] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=51.92271,-8.30333
+    - paragraph [ref=e17]: On the present-day Barrett's farm in Spring hill is a old burial ground-church, in the mid 1800's Spring Hill House and lands were occupied by the Wakeham family+
+    - generic [ref=e18]:
+      - heading "Sources" [level=2] [ref=e19]
+      - list [ref=e20]:
+        - listitem [ref=e21]: Jim Barry / Carrigtwohill Historical Society
+  - contentinfo [ref=e22]:
+    - paragraph [ref=e23]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

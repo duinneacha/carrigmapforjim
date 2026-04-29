@@ -1,0 +1,30 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]:
+        - link "← Back to map" [ref=e5] [cursor=pointer]:
+          - /url: index.html
+      - paragraph [ref=e6]: Carrigtwohill Parish — Historical Places
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Daibhi de Barra" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Birthplace — Poet's birthplace · 1758–1851
+      - paragraph [ref=e11]:
+        - generic [ref=e12]: Coordinates
+        - generic [ref=e13]: 51.92837, -8.25393
+        - generic [ref=e14]: ·
+        - link "Open in Google Maps" [ref=e15] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=51.92837,-8.25393
+    - paragraph [ref=e17]: The birth place of the famous poet Daibhi de Barra 1758 to 1851 (Dath an Ghleanna, Davy of the Glen) who was a tenant farmer , poet, and author in the Irish language, lived here, with his wife Eilis nee. Ni Chaoimh they had four sons and five daughters A few lines from one of his poems . .
+    - generic [ref=e18]:
+      - heading "Related Places" [level=2] [ref=e19]
+      - list [ref=e20]:
+        - listitem [ref=e21]:
+          - link "Lois Ameraidh" [ref=e22] [cursor=pointer]:
+            - /url: place.html?id=lois-ameraidh
+    - generic [ref=e23]:
+      - heading "Sources" [level=2] [ref=e24]
+      - list [ref=e25]:
+        - listitem [ref=e26]: Jim Barry / Carrigtwohill Historical Society
+  - contentinfo [ref=e27]:
+    - paragraph [ref=e28]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

@@ -129,6 +129,137 @@
         }
       ],
       "sources": []
+    },
+
+    {
+      "id": "barretts-field",
+      "name": "Barrett's Field",
+      "pinType": "fort",
+      "location": { "lat": 51.92271, "lng": -8.30333 },
+      "category": "Burial ground",
+      "type": "Old burial ground / church site",
+      "preview": "On the present-day Barrett's farm in Spring hill is a old burial ground-church...",
+      "images": [],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "On the present-day Barrett's farm in Spring hill is a old burial ground-church, in the mid 1800's Spring Hill House and lands were occupied by the Wakeham family+"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "killacloyne-church",
+      "name": "Killacloyne Church",
+      "pinType": "fort",
+      "location": { "lat": 51.93506, "lng": -8.31762 },
+      "category": "Church",
+      "type": "Early church site",
+      "preview": "Killacloyne, Church of the Sequestered Place, the church which gave the townland its name...",
+      "images": [],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Killacloyne, Church of the Sequestered Place, the church which gave the townland its name was found to be at the Northern end. The exact spot was found apparently with some difficulty on Fentons farm, on the western side of the road heading towards Liberty Hall, Foundations of a building presumable an early church are faintly traceable about 18 feet by 10. Part of the townland of Killacloyne was in the neighbouring parish of Caherlag"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "lois-ameraidh",
+      "name": "Lois Ameraidh",
+      "pinType": "fort",
+      "location": { "lat": 51.93673, "lng": -8.24714 },
+      "category": "Ringfort",
+      "type": "Double-rampart ringfort",
+      "preview": "High up in the townland of Woodstock, Bun a Stuaidh the Irish name for the townland...",
+      "images": [],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "High up in the townland of Woodstock, Bun a Stuaidh the Irish name for the townland is quoted by Daibhi de Barra who live here, the remarkable double rampart Lois commands an extensive view of sea and land to the South. The outer circular is 19 to 12 feet high while the inner one is a few feet higher, another extraordinary feature is a well within the Lois enclosure. The gateway to the Lois would have been on the South side, another Lois called Da Bhan was close by but is now demolished, and the remains of a forge called Broe's Forge are also in this part of the townland"
+            }
+          ]
+        }
+      ],
+      "relatedPlaces": ["daibhi-de-barra", "tobar-bo-finne"]
+    },
+
+    {
+      "id": "tobairin-na-casa",
+      "name": "Tobairin na Casa",
+      "pinType": "fort",
+      "location": { "lat": 51.92601, "lng": -8.25460 },
+      "category": "Well",
+      "type": "Holy well",
+      "preview": "Tobairin na Case – The Easter Well, this a Holy Well about 200 years ago...",
+      "images": [],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Tobairin na Case – The Easter Well, this a Holy Well about 200 years ago a pattern was held annually, until it had to be stopped by the Clergy owing to drunkenness and faction fighting so said by history, from this location the first piped water supply to Carrigtwohill village was taken"
+            }
+          ]
+        }
+      ],
+      "relatedPlaces": ["tobar-bo-finne"]
+    },
+
+    {
+      "id": "tobar-bo-finne",
+      "name": "Tobar Bo Finne",
+      "pinType": "fort",
+      "location": { "lat": 51.93923, "lng": -8.24682 },
+      "category": "Holy well",
+      "type": "Holy well",
+      "preview": "Tobar Bo Finne, The White Cow's Well, this is near the roadside at the summit...",
+      "images": [],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Tobar Bo Finne, The White Cow's Well, this is near the roadside at the summit of Woodstock Hill. The cow comerated is the legend famous Bo Ban of Ballinakilla, hence the road is called Bothar Bo Finne"
+            }
+          ]
+        }
+      ],
+      "relatedPlaces": ["lois-ameraidh", "tobairin-na-casa"]
+    },
+
+    {
+      "id": "daibhi-de-barra",
+      "name": "Daibhi de Barra",
+      "pinType": "fort",
+      "location": { "lat": 51.92837, "lng": -8.25393 },
+      "category": "Birthplace",
+      "type": "Poet's birthplace",
+      "dates": { "range": "1758–1851" },
+      "preview": "The birth place of the famous poet Daibhi de Barra 1758 to 1851...",
+      "images": [],
+      "sections": [
+        {
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "The birth place of the famous poet Daibhi de Barra 1758 to 1851 (Dath an Ghleanna, Davy of the Glen) who was a tenant farmer , poet, and author in the Irish language, lived here, with his wife Eilis nee. Ni Chaoimh they had four sons and five daughters\nA few lines from one of his poems\n\n. ."
+            }
+          ]
+        }
+      ],
+      "relatedPlaces": ["lois-ameraidh"]
     }
   ]
 }

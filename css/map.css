@@ -87,52 +87,111 @@ main {
   font-family: Georgia, serif;
 }
 
-.base-layer-switcher {
-  display: flex;
-  box-shadow: 0 2px 6px rgba(28, 26, 23, 0.35);
+/* Collapsible layers control: a layers-glyph button that expands into a
+   panel with a basemap radio group and an overlay checkbox group. */
+.layers-control {
   border: 1px solid var(--ink);
   border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(28, 26, 23, 0.35);
   overflow: hidden;
 }
 
-.base-layer-btn {
+.layers-toggle {
+  display: block;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   background: #fff;
   border: 0;
-  padding: 0.5rem 0.85rem;
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--ink);
   cursor: pointer;
-  min-width: 4.75rem;
-  width: auto;
-  text-align: center;
-  white-space: nowrap;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  color: var(--ink);
+  line-height: 0;
 }
 
-.base-layer-btn + .base-layer-btn {
-  border-left: 1px solid var(--ink);
-}
-
-.base-layer-btn:hover:not(.is-active) {
+.layers-toggle:hover {
   background: var(--paper-2);
   color: var(--accent-dark);
 }
 
-.base-layer-btn.is-active {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: inset 0 -3px 0 var(--accent-dark);
-}
-
-.base-layer-btn:focus-visible {
+.layers-toggle:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: -2px;
 }
 
-/* Custom DOM marker (button with an SVG background) */
+.layers-toggle svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.layers-control.is-expanded .layers-toggle {
+  background: var(--accent);
+  color: #fff;
+}
+
+.layers-panel {
+  border-top: 1px solid var(--rule);
+  background: #fff;
+  padding: 0.5rem 0.75rem 0.75rem;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+  width: max-content;
+  max-width: min(280px, 75vw);
+}
+
+.layers-panel[hidden] { display: none; }
+
+.layers-group {
+  border: 0;
+  margin: 0;
+  padding: 0.15rem 0 0;
+}
+
+.layers-group-overlays {
+  border-top: 1px solid var(--rule);
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+}
+
+.layers-group legend {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
+
+.layers-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.18rem 0;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.25;
+}
+
+.layers-option:hover { color: var(--accent-dark); }
+
+.layers-option input {
+  margin: 0;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.layers-option input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Custom DOM marker (button with an SVG background). MapLibre adds its own
+   `.maplibregl-marker { position: absolute }` to this element, which doubles
+   as the positioning context for `.map-pin-label`. Do NOT add
+   `position: relative` here — it overrides MapLibre's absolute positioning
+   and breaks marker placement when zoomed out. */
 .map-pin {
   background-color: transparent;
   background-repeat: no-repeat;
@@ -151,161 +210,29 @@ main {
   border-radius: 3px;
 }
 
-/* User-placed (temporary) pin — blue teardrop w/ plus, right-click for menu */
-.map-pin-user {
-  cursor: context-menu;
-}
-
-/* Edit-mode toggle — lives in the site header, not a map control */
-.edit-toggle-btn {
-  background: #fff;
-  border: 1px solid var(--ink);
-  border-radius: 4px;
-  padding: 0.5rem 1.1rem;
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--ink);
-  cursor: pointer;
-  min-width: 5.5rem;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(28, 26, 23, 0.18);
-  transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
-  flex-shrink: 0;
-}
-
-.edit-toggle-btn:hover:not(.is-active) {
-  background: var(--paper);
-  color: var(--accent-dark);
-}
-
-.edit-toggle-btn.is-active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent-dark);
-  box-shadow: inset 0 -3px 0 var(--accent-dark), 0 1px 3px rgba(28, 26, 23, 0.25);
-}
-
-.edit-toggle-btn:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-/* Banner shown while edit mode is active */
-.edit-mode-indicator {
+/* Always-visible place name floating above the pin icon. The icon's bottom
+   tip is the geographic anchor, so the label hangs above it to avoid
+   visually competing with the precise location. */
+.map-pin-label {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 450;
-  max-width: calc(100% - 2rem);
-  background: var(--accent);
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  padding: 2px 6px;
+  font: 600 11px/1.2 system-ui, -apple-system, Segoe UI, sans-serif;
   color: #fff;
-  padding: 0.55rem 0.9rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  line-height: 1.35;
-  box-shadow: var(--shadow);
+  background: rgba(20, 16, 12, 0.78);
+  border-radius: 3px;
+  white-space: nowrap;
   pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.01em;
 }
 
-.edit-mode-indicator[hidden] { display: none; }
-
-/* Edit-pin entry form */
-#editpin-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-#editpin-form label {
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-  font-weight: 600;
-  margin-top: 0.3rem;
-}
-
-#editpin-form .field-hint {
-  font-weight: 400;
-  font-style: italic;
-}
-
-#editpin-form input {
-  padding: 0.55rem 0.7rem;
-  font: inherit;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: #fff;
-  color: var(--ink);
-}
-
-#editpin-form input:focus {
-  outline: 2px solid var(--focus);
-  outline-offset: 1px;
-  border-color: var(--focus);
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  margin-top: 0.8rem;
-}
-
-.btn-secondary {
-  background: #fff;
-  color: var(--ink);
-  border: 1px solid var(--rule);
-  padding: 0.55rem 1rem;
-  border-radius: 3px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-secondary:hover,
-.btn-secondary:focus { background: var(--paper-2); }
-
-/* Context menu for user pins */
-.pin-context {
-  position: fixed;
-  z-index: 1200;
-  background: var(--paper);
-  border: 1px solid var(--ink);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-  min-width: 180px;
-  padding: 0.25rem 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.pin-context[hidden] { display: none; }
-
-.pin-context button {
-  background: transparent;
-  border: 0;
-  padding: 0.5rem 0.9rem;
-  font: inherit;
-  font-size: 0.95rem;
-  text-align: left;
-  cursor: pointer;
-  color: var(--ink);
-}
-
-.pin-context button:hover,
-.pin-context button:focus {
-  background: var(--paper-2);
-  outline: none;
-}
-
-.pin-context button[data-action="delete"] {
-  color: #7a1f12;
-}
-
-.pin-context button[data-action="delete"]:hover,
-.pin-context button[data-action="delete"]:focus {
-  background: #fff3f1;
+.map-pin:hover .map-pin-label,
+.map-pin:focus-visible .map-pin-label {
+  background: rgba(20, 16, 12, 0.95);
 }
 
 /* Hover tooltip for townland boundaries */

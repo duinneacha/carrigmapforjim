@@ -260,6 +260,206 @@
         }
       ],
       "relatedPlaces": ["lois-ameraidh"]
+    },
+
+    {
+      "id": "cashs-place",
+      "name": "Cash's Place",
+      "pinType": "fort",
+      "location": { "lat": 51.91992, "lng": -8.30896 },
+      "category": "Unknown",
+      "type": "TBD"
+    },
+
+    {
+      "id": "spring-hill-church",
+      "name": "Spring Hill Church",
+      "pinType": "fort",
+      "location": { "lat": 51.92256, "lng": -8.30362 },
+      "category": "Ecclesiastical",
+      "type": "Church"
+    },
+
+    {
+      "id": "anngrove-house",
+      "name": "Anngrove House",
+      "pinType": "fort",
+      "location": { "lat": 51.92061, "lng": -8.28172 },
+      "category": "Estate",
+      "type": "Country house"
+    },
+
+    {
+      "id": "tibbotstown-reservoir",
+      "name": "Tibbotstown Reservoir",
+      "pinType": "fort",
+      "location": { "lat": 51.93951, "lng": -8.27543 },
+      "category": "Infrastructure",
+      "type": "Reservoir"
+    },
+
+    {
+      "id": "templeacurraheen-graveyard",
+      "name": "Templeacurraheen Graveyard",
+      "pinType": "fort",
+      "location": { "lat": 51.92493, "lng": -8.27818 },
+      "category": "Burial ground",
+      "type": "Graveyard"
+    },
+
+    {
+      "id": "broes-forge",
+      "name": "Broe's Forge",
+      "pinType": "fort",
+      "location": { "lat": 51.94118, "lng": -8.25168 },
+      "category": "Smithy",
+      "type": "Forge"
+    },
+
+    {
+      "id": "lackabeha-fort",
+      "name": "Lackabeha Fort",
+      "pinType": "fort",
+      "location": { "lat": 51.94196, "lng": -8.25123 },
+      "category": "Ringfort",
+      "type": "Fort"
+    },
+
+    {
+      "id": "woodstock-house",
+      "name": "Woodstock House",
+      "pinType": "fort",
+      "location": { "lat": 51.93775, "lng": -8.24098 },
+      "category": "Estate",
+      "type": "Country house"
+    },
+
+    {
+      "id": "curragh-fort",
+      "name": "The Curragh Fort",
+      "pinType": "fort",
+      "location": { "lat": 51.93974, "lng": -8.23107 },
+      "category": "Ringfort",
+      "type": "Fort"
+    },
+
+    {
+      "id": "ballycurrany-graveyard",
+      "name": "Ballycurrany Graveyard",
+      "pinType": "fort",
+      "location": { "lat": 51.94892, "lng": -8.23648 },
+      "category": "Burial ground",
+      "type": "Graveyard"
+    },
+
+    {
+      "id": "knockaheem-forge",
+      "name": "Knockaheem Forge",
+      "pinType": "fort",
+      "location": { "lat": 51.95440, "lng": -8.25355 },
+      "category": "Smithy",
+      "type": "Forge (extinct)",
+      "preview": "The forge is now extinct"
+    },
+
+    {
+      "id": "ring-view-bar",
+      "name": "The Ring View Bar",
+      "pinType": "fort",
+      "location": { "lat": 51.95950, "lng": -8.26409 },
+      "category": "Public house",
+      "type": "Bar"
+    },
+
+    {
+      "id": "midleton-waterworks",
+      "name": "Midleton Waterworks",
+      "pinType": "fort",
+      "location": { "lat": 51.94547, "lng": -8.23141 },
+      "category": "Infrastructure",
+      "type": "Waterworks"
+    },
+
+    {
+      "id": "midleton-water-source",
+      "name": "Midleton Water Source",
+      "pinType": "fort",
+      "location": { "lat": 51.94524, "lng": -8.23021 },
+      "category": "Infrastructure",
+      "type": "Water source",
+      "preview": "Source of the first water supply to the town of Midleton, from the Leamlara river on the parish borders with Ballycurranny"
+    },
+
+    {
+      "id": "old-graveyard",
+      "name": "Old Graveyard",
+      "pinType": "fort",
+      "location": { "lat": 51.91090, "lng": -8.25974 },
+      "category": "Burial ground",
+      "type": "Graveyard"
+    },
+
+    {
+      "id": "three-chimney-house",
+      "name": "The 3 Chimney House",
+      "pinType": "fort",
+      "location": { "lat": 51.92687, "lng": -8.27224 },
+      "category": "Estate",
+      "type": "House"
+    },
+
+    {
+      "id": "leaba-bo-bainne",
+      "name": "Leaba Bó Bainne",
+      "pinType": "fort",
+      "location": { "lat": 51.95501, "lng": -8.27886 },
+      "category": "Unknown",
+      "type": "TBD"
+    },
+
+    {
+      "id": "barrys-shop-gurranes",
+      "name": "Barry's Shop, Gurranes",
+      "pinType": "fort",
+      "location": { "lat": 51.94314, "lng": -8.26111 },
+      "category": "Commercial",
+      "type": "Shop"
+    },
+
+    {
+      "id": "kluxes-dance-hall",
+      "name": "Kluxe's Dance Hall",
+      "pinType": "fort",
+      "location": { "lat": 51.94287, "lng": -8.26094 },
+      "category": "Commercial",
+      "type": "Dance hall"
+    },
+
+    {
+      "id": "kluxes-fort",
+      "name": "Kluxe's Fort",
+      "pinType": "fort",
+      "location": { "lat": 51.94356, "lng": -8.26452 },
+      "category": "Ringfort",
+      "type": "Fort"
+    },
+
+    {
+      "id": "finns-fort",
+      "name": "Finn's Fort",
+      "pinType": "fort",
+      "location": { "lat": 51.94288, "lng": -8.26723 },
+      "category": "Ringfort",
+      "type": "Fort"
+    },
+
+    {
+      "id": "mulcahys-fort",
+      "name": "Mulcahy's Fort",
+      "pinType": "fort",
+      "location": { "lat": 51.93793, "lng": -8.26929 },
+      "category": "Ringfort",
+      "type": "Fort"
     }
   ]
 }

@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]:
+        - link "← Back to map" [ref=e5] [cursor=pointer]:
+          - /url: index.html
+      - paragraph [ref=e6]: Carrigtwohill Parish — Historical Places
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Midleton Water Source" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Infrastructure — Water source
+      - paragraph [ref=e11]:
+        - generic [ref=e12]: Coordinates
+        - generic [ref=e13]: 51.94524, -8.23021
+        - generic [ref=e14]: ·
+        - link "Open in Google Maps" [ref=e15] [cursor=pointer]:
+          - /url: https://www.google.com/maps/search/?api=1&query=51.94524,-8.23021
+  - contentinfo [ref=e16]:
+    - paragraph [ref=e17]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

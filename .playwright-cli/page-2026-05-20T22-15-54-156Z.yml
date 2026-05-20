@@ -1,0 +1,86 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - heading "Carrigtwohill Parish — Historical Places" [level=1] [ref=e4]
+      - paragraph [ref=e5]: An interactive map of local history
+  - main [ref=e6]:
+    - region "Interactive map of historical places" [ref=e7]:
+      - generic:
+        - region "Map" [ref=e8]
+        - button "Ballyannan Castle" [ref=e9] [cursor=pointer]:
+          - generic: Ballyannan Castle
+        - button "Ballyvodock Castle" [ref=e10] [cursor=pointer]:
+          - generic: Ballyvodock Castle
+        - button "Leamlara House" [ref=e11] [cursor=pointer]:
+          - generic: Leamlara House
+        - button "St. Mary's Parish Church, Carrigtwohill" [ref=e12] [cursor=pointer]:
+          - generic: St. Mary's Parish Church, Carrigtwohill
+        - button "Barrett's Field" [ref=e13] [cursor=pointer]:
+          - generic: Barrett's Field
+        - button "Killacloyne Church" [ref=e14] [cursor=pointer]:
+          - generic: Killacloyne Church
+        - button "Lois Ameraidh" [ref=e15] [cursor=pointer]:
+          - generic: Lois Ameraidh
+        - button "Tobairin na Casa" [ref=e16] [cursor=pointer]:
+          - generic: Tobairin na Casa
+        - button "Tobar Bo Finne" [ref=e17] [cursor=pointer]:
+          - generic: Tobar Bo Finne
+        - button "Daibhi de Barra" [ref=e18] [cursor=pointer]:
+          - generic: Daibhi de Barra
+        - button "Cash's Place" [ref=e19] [cursor=pointer]:
+          - generic: Cash's Place
+        - button "Spring Hill Church" [ref=e20] [cursor=pointer]:
+          - generic: Spring Hill Church
+        - button "Anngrove House" [ref=e21] [cursor=pointer]:
+          - generic: Anngrove House
+        - button "Tibbotstown Reservoir" [ref=e22] [cursor=pointer]:
+          - generic: Tibbotstown Reservoir
+        - button "Templeacurraheen Graveyard" [ref=e23] [cursor=pointer]:
+          - generic: Templeacurraheen Graveyard
+        - button "Broe's Forge" [ref=e24] [cursor=pointer]:
+          - generic: Broe's Forge
+        - button "Lackabeha Fort" [ref=e25] [cursor=pointer]:
+          - generic: Lackabeha Fort
+        - button "Woodstock House" [ref=e26] [cursor=pointer]:
+          - generic: Woodstock House
+        - button "The Curragh Fort" [ref=e27] [cursor=pointer]:
+          - generic: The Curragh Fort
+        - button "Ballycurrany Graveyard" [ref=e28] [cursor=pointer]:
+          - generic: Ballycurrany Graveyard
+        - button "Knockaheem Forge" [ref=e29] [cursor=pointer]:
+          - generic: Knockaheem Forge
+        - button "The Ring View Bar" [ref=e30] [cursor=pointer]:
+          - generic: The Ring View Bar
+        - button "Midleton Waterworks" [ref=e31] [cursor=pointer]:
+          - generic: Midleton Waterworks
+        - button "Midleton Water Source" [ref=e32] [cursor=pointer]:
+          - generic: Midleton Water Source
+        - button "Old Graveyard" [ref=e33] [cursor=pointer]:
+          - generic: Old Graveyard
+        - button "The 3 Chimney House" [ref=e34] [cursor=pointer]:
+          - generic: The 3 Chimney House
+        - button "Leaba Bó Bainne" [ref=e35] [cursor=pointer]:
+          - generic: Leaba Bó Bainne
+        - button "Barry's Shop, Gurranes" [ref=e36] [cursor=pointer]:
+          - generic: Barry's Shop, Gurranes
+        - button "Kluxe's Dance Hall" [ref=e37] [cursor=pointer]:
+          - generic: Kluxe's Dance Hall
+        - button "Kluxe's Fort" [ref=e38] [cursor=pointer]:
+          - generic: Kluxe's Fort
+        - button "Finn's Fort" [ref=e39] [cursor=pointer]:
+          - generic: Finn's Fort
+        - button "Mulcahy's Fort" [ref=e40] [cursor=pointer]:
+          - generic: Mulcahy's Fort
+      - generic:
+        - generic:
+          - generic [ref=e41]:
+            - button "Zoom in" [ref=e42] [cursor=pointer]
+            - button "Zoom out" [ref=e44] [cursor=pointer]
+            - button "Reset bearing to north" [ref=e46]
+          - button "Layers" [ref=e49] [cursor=pointer]:
+            - img [ref=e50]
+        - group [ref=e52]:
+          - generic "Toggle attribution" [ref=e53] [cursor=pointer]
+          - generic [ref=e54]: "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+  - contentinfo [ref=e55]:
+    - paragraph [ref=e56]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

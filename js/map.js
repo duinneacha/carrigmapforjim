@@ -95,10 +95,10 @@
 
   const TOWNLANDS_URL = 'data/cork_townlands.geojson';
   const PARISHES_URL = 'data/parishes.geojson';
-  const CACHE_NAME = 'jimmap-boundaries-v1';
+  const CACHE_NAME = 'jimmap-boundaries-v2';
   const TS_KEY_TOWNLANDS = 'cork_townlands_cache_ts';
   const TS_KEY_PARISHES = 'cork_parishes_cache_ts';
-  const PARISH_MAP_KEY = 'cork_townland_parish_map_v2';
+  const PARISH_MAP_KEY = 'cork_townland_parish_map_v3';
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
   function lsGet(key) {
@@ -109,6 +109,32 @@
   }
   function lsDel(key) {
     try { localStorage.removeItem(key); } catch (_) {}
+  }
+
+  // --- Layer state (persisted) ------------------------------------------
+  // One place defines the four overlays. `buildStyle` uses this to bake
+  // initial `visibility` into the style JSON (no flash of default state on
+  // first paint), and LayersControl uses it to render the panel and to
+  // re-apply visibility after every style swap.
+  const BASEMAP_KEY = 'map.basemap';
+  const OVERLAYS = [
+    { id: 'parishBorders',   label: 'Parish borders',   layerIds: ['parish-outline-casing', 'parish-outline'], storageKey: 'map.overlay.parishBorders',   defaultOn: false },
+    { id: 'parishNames',     label: 'Parish names',     layerIds: ['parish-names'],                              storageKey: 'map.overlay.parishNames',     defaultOn: false },
+    { id: 'townlandBorders', label: 'Townland borders', layerIds: ['townland-fill', 'townland-outline'],         storageKey: 'map.overlay.townlandBorders', defaultOn: false },
+    { id: 'townlandNames',   label: 'Townland names',   layerIds: ['townland-names'],                            storageKey: 'map.overlay.townlandNames',   defaultOn: false }
+  ];
+
+  function readBasemap() {
+    const v = lsGet(BASEMAP_KEY);
+    return v === 'simple' ? 'simple' : 'satellite';
+  }
+  function readOverlayState() {
+    const state = {};
+    for (const o of OVERLAYS) {
+      const v = lsGet(o.storageKey);
+      state[o.id] = v == null ? o.defaultOn : v === 'true';
+    }
+    return state;
   }
 
   async function fetchJsonWithCache(url, tsKey, opts) {
@@ -267,9 +293,6 @@
 
   // --- Layer definitions -------------------------------------------------
 
-  const TOWNLAND_LAYER_IDS = ['townland-fill', 'townland-outline'];
-  const PARISH_LAYER_IDS = ['parish-outline-casing', 'parish-outline'];
-
   function townlandLayers() {
     return [
       {
@@ -316,6 +339,54 @@
           'line-color': '#ffdd00',
           'line-opacity': 1,
           'line-width': 2.5
+        }
+      }
+    ];
+  }
+
+  // Centroid labels for the polygon sources. MapLibre auto-places one label
+  // per polygon at its visual centroid and hides overlapping labels at low
+  // zoom. Both layers are visibility-controlled by LayersControl.
+  function townlandNameLayers() {
+    return [
+      {
+        id: 'townland-names',
+        type: 'symbol',
+        source: 'townlands',
+        minzoom: 13,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': 12,
+          'symbol-placement': 'point'
+        },
+        paint: {
+          'text-color': '#ffffff',
+          'text-halo-color': 'rgba(20, 16, 12, 0.85)',
+          'text-halo-width': 1.4
+        }
+      }
+    ];
+  }
+
+  function parishNameLayers() {
+    return [
+      {
+        id: 'parish-names',
+        type: 'symbol',
+        source: 'parishes',
+        minzoom: 9,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['Open Sans Semibold'],
+          'text-size': 14,
+          'text-letter-spacing': 0.05,
+          'symbol-placement': 'point'
+        },
+        paint: {
+          'text-color': '#ffdd00',
+          'text-halo-color': 'rgba(20, 16, 12, 0.9)',
+          'text-halo-width': 2
         }
       }
     ];
@@ -383,370 +454,224 @@
     return {
       version: 8,
       projection: { type: 'globe' },
+      // MapLibre symbol layers need a glyphs URL to render text. Demotiles
+      // is the project's own demo glyph server — no API key, CORS-open,
+      // serves "Open Sans Regular" and "Open Sans Bold".
+      glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
       sources: Object.assign({}, base.sources, {
         townlands: { type: 'geojson', data: emptyFC(), attribution: OSM_ATTRIBUTION },
         parishes: { type: 'geojson', data: emptyFC(), attribution: OSM_ATTRIBUTION }
       }),
-      layers: [
+      layers: bakeInitialVisibility([
         ...base.baseLayers,
         ...townlandLayers(),
         ...parishLayers(),
+        ...townlandNameLayers(),
+        ...parishNameLayers(),
         // Esri's labels-and-places overlay (only present in satellite) goes
         // on top of boundaries so place names remain readable.
         ...(kind === 'satellite'
           ? [{ id: 'esri-reference', type: 'raster', source: 'esri-reference' }]
           : [])
-      ]
+      ])
     };
+  }
+
+  // Mutate layer definitions in-place to set visibility:'none' on any
+  // overlay layer that should start hidden according to localStorage. Avoids
+  // a flash of default state before LayersControl's style.load handler runs.
+  function bakeInitialVisibility(layers) {
+    const layerToOverlay = {};
+    for (const o of OVERLAYS) {
+      for (const lid of o.layerIds) layerToOverlay[lid] = o.id;
+    }
+    const state = readOverlayState();
+    for (const layer of layers) {
+      const oid = layerToOverlay[layer.id];
+      if (oid && !state[oid]) {
+        layer.layout = Object.assign({}, layer.layout, { visibility: 'none' });
+      }
+    }
+    return layers;
   }
 
   const SATELLITE_STYLE = buildStyle('satellite');
   const SIMPLE_STYLE = buildStyle('simple');
+  const INITIAL_STYLE = readBasemap() === 'simple' ? SIMPLE_STYLE : SATELLITE_STYLE;
 
-  // --- Base layer switcher (custom IControl) ----------------------------
+  // --- Collapsible layers control (custom IControl) --------------------
+  // Single control that owns both basemap selection (radio, mutually
+  // exclusive) and overlay toggles (checkbox, independent). Persists
+  // selection to localStorage; restores on next visit. Collapsed to an icon
+  // by default; expands on click; dismisses on outside click or second
+  // click of the icon.
 
-  class BaseLayerSwitcher {
-    constructor(layers, initialId) {
-      this._layers = layers;
-      this._current = initialId;
-    }
-    onAdd(map) {
-      this._map = map;
-      const el = document.createElement('div');
-      el.className = 'maplibregl-ctrl maplibregl-ctrl-group base-layer-switcher';
-      el.setAttribute('role', 'group');
-      el.setAttribute('aria-label', 'Base layer');
-      this._buttons = this._layers.map((layer) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = layer.label;
-        btn.className = 'base-layer-btn' + (layer.id === this._current ? ' is-active' : '');
-        btn.setAttribute('aria-pressed', layer.id === this._current ? 'true' : 'false');
-        btn.addEventListener('click', () => this._switch(layer.id));
-        el.appendChild(btn);
-        return { id: layer.id, el: btn };
-      });
-      this._el = el;
-      return el;
-    }
-    _switch(id) {
-      if (id === this._current) return;
-      const layer = this._layers.find((l) => l.id === id);
-      if (!layer) return;
-      this._current = id;
-      this._map.setStyle(layer.style, { diff: false });
-      this._buttons.forEach((b) => {
-        const active = b.id === id;
-        b.el.classList.toggle('is-active', active);
-        b.el.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-    }
-    onRemove() {
-      if (this._el && this._el.parentNode) this._el.parentNode.removeChild(this._el);
-      this._map = undefined;
-    }
-  }
+  // Material Icons "layers" glyph — two stacked sheets, recognisable.
+  const LAYERS_ICON_SVG =
+    '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">' +
+    '<path fill="currentColor" d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/>' +
+    '</svg>';
 
-  // --- Boundary visibility toggle (one button per layer set) ------------
-  // Boundary layers live inside both basemap styles (so they survive
-  // setStyle), but visibility is per-layer layout that resets on style swap.
-  // Re-apply on 'style.load'.
-
-  const VIS_KEY_TOWNLANDS = 'jimmap_show_townlands';
-  const VIS_KEY_PARISHES = 'jimmap_show_parishes';
-
-  class BoundaryToggle {
+  class LayersControl {
     constructor(opts) {
-      this._label = opts.label;
-      this._layerIds = opts.layerIds;
-      this._storageKey = opts.storageKey;
-      const stored = lsGet(this._storageKey);
-      this._visible = stored == null ? true : stored !== '0';
+      this._basemaps = opts.basemaps;
+      this._currentBasemap = readBasemap();
+      this._overlayState = readOverlayState();
+      this._expanded = false;
     }
+
     onAdd(map) {
       this._map = map;
+
       const el = document.createElement('div');
-      el.className = 'maplibregl-ctrl maplibregl-ctrl-group base-layer-switcher boundary-toggle';
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'base-layer-btn' + (this._visible ? ' is-active' : '');
-      btn.setAttribute('aria-pressed', this._visible ? 'true' : 'false');
-      btn.textContent = this._label;
-      btn.addEventListener('click', () => this._toggle());
-      el.appendChild(btn);
-      this._btn = btn;
+      el.className = 'maplibregl-ctrl maplibregl-ctrl-group layers-control';
+
+      // Toggle button — always visible; doubles as a "close" affordance
+      // when expanded (second click collapses).
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'layers-toggle';
+      toggleBtn.setAttribute('aria-label', 'Layers');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      toggleBtn.setAttribute('title', 'Layers');
+      toggleBtn.innerHTML = LAYERS_ICON_SVG;
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._toggleExpanded();
+      });
+      el.appendChild(toggleBtn);
+      this._toggleBtn = toggleBtn;
+
+      // Panel — radio group for basemap, checkbox group for overlays.
+      const panel = document.createElement('div');
+      panel.className = 'layers-panel';
+      panel.hidden = true;
+      // Stop clicks inside the panel from bubbling to the document-level
+      // outside-click handler.
+      panel.addEventListener('mousedown', (e) => e.stopPropagation());
+      panel.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+      panel.appendChild(this._buildBasemapGroup());
+      panel.appendChild(this._buildOverlayGroup());
+
+      el.appendChild(panel);
+      this._panel = panel;
       this._el = el;
 
-      this._reapply = () => this._applyVisibility();
+      // Re-apply overlay visibility after every basemap swap. The new style
+      // has visibility baked from localStorage at module load, but if the
+      // user toggled an overlay before swapping, the in-memory state is
+      // newer than the baked default — re-apply to be safe.
+      this._reapply = () => this._applyAllOverlays();
       map.on('style.load', this._reapply);
 
+      // Outside-click to collapse. Use mousedown so the click feels
+      // immediate; passive touchstart for mobile.
+      this._onDocClick = (e) => {
+        if (this._expanded && !el.contains(e.target)) this._toggleExpanded(false);
+      };
+      document.addEventListener('mousedown', this._onDocClick);
+      document.addEventListener('touchstart', this._onDocClick, { passive: true });
+
       return el;
     }
-    _toggle() {
-      this._visible = !this._visible;
-      this._btn.classList.toggle('is-active', this._visible);
-      this._btn.setAttribute('aria-pressed', this._visible ? 'true' : 'false');
-      lsSet(this._storageKey, this._visible ? '1' : '0');
-      this._applyVisibility();
+
+    _buildBasemapGroup() {
+      const fs = document.createElement('fieldset');
+      fs.className = 'layers-group';
+      const lg = document.createElement('legend');
+      lg.textContent = 'Basemap';
+      fs.appendChild(lg);
+      this._basemapRadios = {};
+      for (const bm of this._basemaps) {
+        const lbl = document.createElement('label');
+        lbl.className = 'layers-option';
+        const r = document.createElement('input');
+        r.type = 'radio';
+        r.name = 'jimmap-basemap';
+        r.value = bm.id;
+        r.checked = bm.id === this._currentBasemap;
+        r.addEventListener('change', () => { if (r.checked) this._setBasemap(bm.id); });
+        lbl.appendChild(r);
+        lbl.appendChild(document.createTextNode(' ' + bm.label));
+        fs.appendChild(lbl);
+        this._basemapRadios[bm.id] = r;
+      }
+      return fs;
     }
-    _applyVisibility() {
+
+    _buildOverlayGroup() {
+      const fs = document.createElement('fieldset');
+      fs.className = 'layers-group layers-group-overlays';
+      const lg = document.createElement('legend');
+      lg.textContent = 'Overlays';
+      fs.appendChild(lg);
+      this._overlayCheckboxes = {};
+      for (const o of OVERLAYS) {
+        const lbl = document.createElement('label');
+        lbl.className = 'layers-option';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!this._overlayState[o.id];
+        cb.addEventListener('change', () => this._setOverlay(o.id, cb.checked));
+        lbl.appendChild(cb);
+        lbl.appendChild(document.createTextNode(' ' + o.label));
+        fs.appendChild(lbl);
+        this._overlayCheckboxes[o.id] = cb;
+      }
+      return fs;
+    }
+
+    _toggleExpanded(force) {
+      const next = typeof force === 'boolean' ? force : !this._expanded;
+      if (next === this._expanded) return;
+      this._expanded = next;
+      this._el.classList.toggle('is-expanded', next);
+      this._panel.hidden = !next;
+      this._toggleBtn.setAttribute('aria-expanded', next ? 'true' : 'false');
+    }
+
+    _setBasemap(id) {
+      if (id === this._currentBasemap) return;
+      const bm = this._basemaps.find((b) => b.id === id);
+      if (!bm) return;
+      this._currentBasemap = id;
+      lsSet(BASEMAP_KEY, id);
+      this._map.setStyle(bm.style, { diff: false });
+      for (const k in this._basemapRadios) {
+        this._basemapRadios[k].checked = k === id;
+      }
+    }
+
+    _setOverlay(id, on) {
+      this._overlayState[id] = on;
+      const o = OVERLAYS.find((x) => x.id === id);
+      if (o) lsSet(o.storageKey, on ? 'true' : 'false');
+      this._applyOverlay(id);
+    }
+
+    _applyOverlay(id) {
       if (!this._map) return;
-      const value = this._visible ? 'visible' : 'none';
-      this._layerIds.forEach((id) => {
-        if (this._map.getLayer(id)) {
-          this._map.setLayoutProperty(id, 'visibility', value);
+      const o = OVERLAYS.find((x) => x.id === id);
+      if (!o) return;
+      const visibility = this._overlayState[id] ? 'visible' : 'none';
+      for (const layerId of o.layerIds) {
+        if (this._map.getLayer(layerId)) {
+          this._map.setLayoutProperty(layerId, 'visibility', visibility);
         }
-      });
+      }
     }
+
+    _applyAllOverlays() {
+      for (const o of OVERLAYS) this._applyOverlay(o.id);
+    }
+
     onRemove() {
       if (this._map && this._reapply) this._map.off('style.load', this._reapply);
+      document.removeEventListener('mousedown', this._onDocClick);
+      document.removeEventListener('touchstart', this._onDocClick);
       if (this._el && this._el.parentNode) this._el.parentNode.removeChild(this._el);
       this._map = undefined;
-    }
-  }
-
-  // --- Edit mode: user-placed pins --------------------------------------
-
-  const USER_PIN_ICON = 'assets/icons/user-pin.svg';
-  const USER_PIN_SIZE = [36, 42];
-  const STORAGE_KEY = 'jimmap_user_pins';
-
-  const userPins = new Map();
-  let userPinSeq = 0;
-  let editMode = false;
-  let pendingLngLat = null;
-
-  const editToggleBtn = document.getElementById('edit-toggle-btn');
-  editToggleBtn.addEventListener('click', () => toggleEditMode());
-
-  function setEditToggleActive(active) {
-    editToggleBtn.classList.toggle('is-active', active);
-    editToggleBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
-    editToggleBtn.textContent = active ? 'Exit edit' : 'Edit';
-  }
-
-  function toggleEditMode(force) {
-    const next = typeof force === 'boolean' ? force : !editMode;
-    if (next === editMode) return;
-    editMode = next;
-    setEditToggleActive(editMode);
-    document.getElementById('edit-mode-indicator').hidden = !editMode;
-    if (editMode) {
-      if (map.doubleClickZoom) map.doubleClickZoom.disable();
-    } else {
-      if (map.doubleClickZoom) map.doubleClickZoom.enable();
-      closePinContextMenu();
-    }
-  }
-
-  function persistUserPins() {
-    try {
-      const arr = Array.from(userPins.values()).map((p) => ({
-        name: p.name,
-        description: p.description,
-        lat: p.lat,
-        lng: p.lng
-      }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    } catch (e) {
-      console.warn('Could not save user pins to localStorage:', e);
-    }
-  }
-
-  function restoreUserPins() {
-    let raw = null;
-    try { raw = localStorage.getItem(STORAGE_KEY); } catch (_) { return; }
-    if (!raw) return;
-    let arr;
-    try {
-      arr = JSON.parse(raw);
-    } catch (e) {
-      console.warn('Stored user pins were not valid JSON; clearing.', e);
-      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
-      return;
-    }
-    if (!Array.isArray(arr)) return;
-    arr.forEach((p) => {
-      if (!p || typeof p.lng !== 'number' || typeof p.lat !== 'number') return;
-      if (typeof p.name !== 'string' || !p.name.trim()) return;
-      createUserPin({
-        lng: p.lng,
-        lat: p.lat,
-        name: p.name,
-        description: typeof p.description === 'string' ? p.description : '',
-        skipPersist: true
-      });
-    });
-  }
-
-  function onMapDblClick(e) {
-    if (!editMode) return;
-    openEditPinModal(e.lngLat);
-  }
-
-  // --- Edit-pin modal ----------------------------------------------------
-
-  const editpinModal = document.getElementById('editpin-modal');
-  const editpinPanel = editpinModal.querySelector('.modal-panel');
-  const editpinForm = document.getElementById('editpin-form');
-  const editpinNameInput = document.getElementById('editpin-name');
-  const editpinDescInput = document.getElementById('editpin-desc');
-  let editpinPrevFocus = null;
-
-  function openEditPinModal(lngLat) {
-    pendingLngLat = lngLat;
-    editpinNameInput.value = '';
-    editpinDescInput.value = '';
-    editpinPrevFocus = document.activeElement;
-    editpinModal.hidden = false;
-    requestAnimationFrame(() => editpinNameInput.focus());
-    document.addEventListener('keydown', onEditpinKey);
-  }
-
-  function closeEditPinModal() {
-    editpinModal.hidden = true;
-    pendingLngLat = null;
-    document.removeEventListener('keydown', onEditpinKey);
-    if (editpinPrevFocus && typeof editpinPrevFocus.focus === 'function') {
-      editpinPrevFocus.focus();
-    }
-  }
-
-  function onEditpinKey(e) {
-    if (e.key === 'Escape') closeEditPinModal();
-  }
-
-  editpinModal.addEventListener('click', (e) => {
-    if (e.target.matches('[data-close]') || e.target.matches('[data-cancel]')) {
-      closeEditPinModal();
-    }
-  });
-
-  editpinForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = editpinNameInput.value.trim();
-    if (!name) {
-      editpinNameInput.focus();
-      return;
-    }
-    const description = editpinDescInput.value.trim();
-    if (pendingLngLat) {
-      createUserPin({
-        lng: pendingLngLat.lng,
-        lat: pendingLngLat.lat,
-        name: name,
-        description: description
-      });
-    }
-    closeEditPinModal();
-  });
-
-  function createUserPin(opts) {
-    const id = 'user-pin-' + (++userPinSeq);
-    const el = document.createElement('div');
-    el.className = 'map-pin map-pin-user';
-    el.setAttribute('role', 'img');
-    el.setAttribute('aria-label', 'User pin: ' + opts.name);
-    el.title = opts.description ? opts.name + ' — ' + opts.description : opts.name;
-    el.style.width = USER_PIN_SIZE[0] + 'px';
-    el.style.height = USER_PIN_SIZE[1] + 'px';
-    el.style.backgroundImage = 'url("' + USER_PIN_ICON + '")';
-    el.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openPinContextMenu(e.clientX, e.clientY, id);
-    });
-    el.addEventListener('click', (e) => { e.stopPropagation(); });
-
-    const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-      .setLngLat([opts.lng, opts.lat])
-      .addTo(map);
-
-    userPins.set(id, {
-      marker: marker,
-      el: el,
-      name: opts.name,
-      description: opts.description,
-      lng: opts.lng,
-      lat: opts.lat
-    });
-
-    if (!opts.skipPersist) persistUserPins();
-  }
-
-  const pinContextEl = document.getElementById('pin-context');
-  let pinContextId = null;
-
-  function openPinContextMenu(x, y, id) {
-    pinContextId = id;
-    pinContextEl.hidden = false;
-    const rect = pinContextEl.getBoundingClientRect();
-    const maxX = window.innerWidth - rect.width - 6;
-    const maxY = window.innerHeight - rect.height - 6;
-    pinContextEl.style.left = Math.max(6, Math.min(x, maxX)) + 'px';
-    pinContextEl.style.top = Math.max(6, Math.min(y, maxY)) + 'px';
-    document.addEventListener('mousedown', onOutsidePinContext, true);
-    document.addEventListener('keydown', onPinContextKey);
-  }
-
-  function closePinContextMenu() {
-    pinContextEl.hidden = true;
-    pinContextId = null;
-    document.removeEventListener('mousedown', onOutsidePinContext, true);
-    document.removeEventListener('keydown', onPinContextKey);
-  }
-
-  function onOutsidePinContext(e) {
-    if (!pinContextEl.contains(e.target)) closePinContextMenu();
-  }
-
-  function onPinContextKey(e) {
-    if (e.key === 'Escape') closePinContextMenu();
-  }
-
-  pinContextEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn || !pinContextId) return;
-    const action = btn.getAttribute('data-action');
-    const pin = userPins.get(pinContextId);
-    const id = pinContextId;
-    closePinContextMenu();
-    if (!pin) return;
-    if (action === 'copy') {
-      copyPinData(pin);
-    } else if (action === 'delete') {
-      pin.marker.remove();
-      userPins.delete(id);
-      persistUserPins();
-    }
-  });
-
-  function formatPinText(pin) {
-    const lng = Number(pin.lng).toFixed(7);
-    const lat = Number(pin.lat).toFixed(7);
-    const parts = [pin.name, lng + ', ' + lat];
-    if (pin.description) parts.push(pin.description);
-    return parts.join(' | ');
-  }
-
-  function copyPinData(pin) {
-    const text = formatPinText(pin);
-    const fallback = () => {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed';
-      ta.style.top = '-1000px';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); } catch (_) { /* best-effort */ }
-      document.body.removeChild(ta);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).catch(fallback);
-    } else {
-      fallback();
     }
   }
 
@@ -801,7 +726,7 @@
   function buildMap() {
     const map = new maplibregl.Map({
       container: 'map',
-      style: SATELLITE_STYLE,
+      style: INITIAL_STYLE,
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       pitch: DEFAULT_PITCH,
@@ -815,31 +740,16 @@
       new maplibregl.NavigationControl({ visualizePitch: true, showCompass: true }),
       'top-right'
     );
-    map.addControl(
-      new BaseLayerSwitcher(
-        [
-          { id: 'satellite', label: 'Satellite', style: SATELLITE_STYLE },
-          { id: 'simple', label: 'Simple', style: SIMPLE_STYLE }
-        ],
-        'satellite'
-      ),
-      'top-right'
-    );
-    map.addControl(new BoundaryToggle({
-      label: 'Townlands',
-      layerIds: TOWNLAND_LAYER_IDS,
-      storageKey: VIS_KEY_TOWNLANDS
-    }), 'top-right');
-    map.addControl(new BoundaryToggle({
-      label: 'Parishes',
-      layerIds: PARISH_LAYER_IDS,
-      storageKey: VIS_KEY_PARISHES
+    map.addControl(new LayersControl({
+      basemaps: [
+        { id: 'satellite', label: 'Satellite', style: SATELLITE_STYLE },
+        { id: 'simple', label: 'Simple', style: SIMPLE_STYLE }
+      ]
     }), 'top-right');
 
     map.on('error', (e) => {
       console.error('[map error]', e && e.error ? e.error : e);
     });
-    map.on('dblclick', onMapDblClick);
 
     return map;
   }
@@ -864,6 +774,14 @@
         openModal(place);
       }
     });
+
+    if (place.name) {
+      const label = document.createElement('span');
+      label.className = 'map-pin-label';
+      label.textContent = place.name;
+      btn.appendChild(label);
+    }
+
     return btn;
   }
 
@@ -945,10 +863,9 @@
 
   showLoading(true);
   const map = buildMap();
-  restoreUserPins();
   attachTooltipHandlers(map);
 
-  // After every style swap, re-apply visibility (handled by BoundaryToggle)
+  // After every style swap, re-apply visibility (handled by LayersControl)
   // and re-push the geojson data into the new sources.
   map.on('style.load', () => applyBoundaryDataToMap(map));
 

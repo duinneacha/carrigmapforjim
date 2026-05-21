@@ -7,18 +7,42 @@
   <meta name="description" content="An interactive map of historical places in Carrigtwohill Parish, Co. Cork." />
 
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.35.0/tabler-icons.min.css" />
   <link rel="stylesheet" href="css/map.css" />
 </head>
 <body>
-  <header class="site-header">
+  <header class="site-header" id="site-header">
     <div class="site-header-text">
-      <h1>Carrigtwohill Parish — Historical Places</h1>
-      <p class="tagline">An interactive map of local history</p>
+      <h1>
+        <span class="site-header-full">Carrigtwohill Parish — Historical Places</span>
+        <span class="site-header-short">Carrigtwohill Parish</span>
+      </h1>
+      <p class="tagline">
+        <span class="site-header-full">An interactive map of local history</span>
+        <span class="site-header-short">Historical places</span>
+      </p>
     </div>
+
+    <button type="button" id="drawer-toggle" class="drawer-toggle"
+            aria-label="Open map controls" aria-expanded="false" aria-controls="map-controls">
+      <i class="ti ti-menu-2" aria-hidden="true"></i>
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
+
+    <div id="map-controls" class="map-controls" role="region" aria-label="Map controls"></div>
   </header>
 
   <main>
     <div id="map" role="region" aria-label="Interactive map of historical places"></div>
+
+    <div class="mobile-zoom" role="group" aria-label="Zoom">
+      <button type="button" id="mobile-zoom-in" class="control-btn" aria-label="Zoom in">
+        <i class="ti ti-plus" aria-hidden="true"></i>
+      </button>
+      <button type="button" id="mobile-zoom-out" class="control-btn" aria-label="Zoom out">
+        <i class="ti ti-minus" aria-hidden="true"></i>
+      </button>
+    </div>
 
     <div id="map-loading" class="map-loading" hidden>Loading places…</div>
     <div id="map-error" class="map-error" role="alert" hidden></div>

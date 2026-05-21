@@ -117,11 +117,27 @@
   // first paint), and LayersControl uses it to render the panel and to
   // re-apply visibility after every style swap.
   const BASEMAP_KEY = 'map.basemap';
+  // Each overlay either toggles MapLibre layers (layerIds) or a class on the
+  // #map element (domClass), or both. Pin labels are baked into marker HTML
+  // rather than rendered as a symbol layer, so they're toggled via DOM class.
+  // Array order is display order. `group` partitions the overlays into
+  // sub-labelled clusters in the UI ("Borders" / "Names").
   const OVERLAYS = [
-    { id: 'parishBorders',   label: 'Parish borders',   layerIds: ['parish-outline-casing', 'parish-outline'], storageKey: 'map.overlay.parishBorders',   defaultOn: false },
-    { id: 'parishNames',     label: 'Parish names',     layerIds: ['parish-names'],                              storageKey: 'map.overlay.parishNames',     defaultOn: false },
-    { id: 'townlandBorders', label: 'Townland borders', layerIds: ['townland-fill', 'townland-outline'],         storageKey: 'map.overlay.townlandBorders', defaultOn: false },
-    { id: 'townlandNames',   label: 'Townland names',   layerIds: ['townland-names'],                            storageKey: 'map.overlay.townlandNames',   defaultOn: false }
+    { id: 'parishBorders',   label: 'Parish',     group: 'borders', icon: 'ti-vector-triangle', layerIds: ['parish-outline-casing', 'parish-outline'], storageKey: 'map.overlay.parishBorders',   defaultOn: false },
+    { id: 'townlandBorders', label: 'Townland',   group: 'borders', icon: 'ti-polygon',         layerIds: ['townland-fill', 'townland-outline'],       storageKey: 'map.overlay.townlandBorders', defaultOn: false },
+    { id: 'parishNames',     label: 'Parish',     group: 'names',   icon: 'ti-typography',      layerIds: ['parish-names'],                            storageKey: 'map.overlay.parishNames',     defaultOn: false },
+    { id: 'townlandNames',   label: 'Townland',   group: 'names',   icon: 'ti-letter-case',     layerIds: ['townland-names'],                          storageKey: 'map.overlay.townlandNames',   defaultOn: false },
+    { id: 'pinLabels',       label: 'Pin labels', group: 'names',   icon: 'ti-tag',             layerIds: [],                                          storageKey: 'map.overlay.pinLabels',       defaultOn: true,  domClass: 'hide-pin-labels' }
+  ];
+
+  const OVERLAY_GROUPS = [
+    { id: 'borders', label: 'Borders' },
+    { id: 'names',   label: 'Names' }
+  ];
+
+  const BASEMAPS = [
+    { id: 'satellite', label: 'Satellite', icon: 'ti-mountain' },
+    { id: 'simple',    label: 'Street',    icon: 'ti-map' }
   ];
 
   function readBasemap() {
@@ -499,147 +515,205 @@
   const SIMPLE_STYLE = buildStyle('simple');
   const INITIAL_STYLE = readBasemap() === 'simple' ? SIMPLE_STYLE : SATELLITE_STYLE;
 
-  // --- Collapsible layers control (custom IControl) --------------------
-  // Single control that owns both basemap selection (radio, mutually
-  // exclusive) and overlay toggles (checkbox, independent). Persists
-  // selection to localStorage; restores on next visit. Collapsed to an icon
-  // by default; expands on click; dismisses on outside click or second
-  // click of the icon.
+  // --- Map controls (basemap + overlays + view actions) -----------------
+  // Single class that owns all state for: basemap selection (radio),
+  // overlay toggles (checkbox), and view actions (zoom in/out, reset).
+  // Renders into any container via renderInto(el) — desktop puts it in the
+  // page header; mobile reuses the same DOM as a drawer. State persists to
+  // localStorage and is restored on next visit.
+  //
+  // Not a MapLibre IControl: it lives outside the map element so it can be
+  // positioned by the page layout rather than the map's corner-anchor
+  // system.
 
-  // Material Icons "layers" glyph — two stacked sheets, recognisable.
-  const LAYERS_ICON_SVG =
-    '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">' +
-    '<path fill="currentColor" d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/>' +
-    '</svg>';
+  function makeIcon(iconClass) {
+    const i = document.createElement('i');
+    i.className = 'ti ' + iconClass;
+    i.setAttribute('aria-hidden', 'true');
+    return i;
+  }
 
   class LayersControl {
-    constructor(opts) {
-      this._basemaps = opts.basemaps;
+    constructor(map) {
+      this._map = map;
       this._currentBasemap = readBasemap();
       this._overlayState = readOverlayState();
-      this._expanded = false;
-    }
-
-    onAdd(map) {
-      this._map = map;
-
-      const el = document.createElement('div');
-      el.className = 'maplibregl-ctrl maplibregl-ctrl-group layers-control';
-
-      // Toggle button — always visible; doubles as a "close" affordance
-      // when expanded (second click collapses).
-      const toggleBtn = document.createElement('button');
-      toggleBtn.type = 'button';
-      toggleBtn.className = 'layers-toggle';
-      toggleBtn.setAttribute('aria-label', 'Layers');
-      toggleBtn.setAttribute('aria-expanded', 'false');
-      toggleBtn.setAttribute('title', 'Layers');
-      toggleBtn.innerHTML = LAYERS_ICON_SVG;
-      toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this._toggleExpanded();
-      });
-      el.appendChild(toggleBtn);
-      this._toggleBtn = toggleBtn;
-
-      // Panel — radio group for basemap, checkbox group for overlays.
-      const panel = document.createElement('div');
-      panel.className = 'layers-panel';
-      panel.hidden = true;
-      // Stop clicks inside the panel from bubbling to the document-level
-      // outside-click handler.
-      panel.addEventListener('mousedown', (e) => e.stopPropagation());
-      panel.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
-
-      panel.appendChild(this._buildBasemapGroup());
-      panel.appendChild(this._buildOverlayGroup());
-
-      el.appendChild(panel);
-      this._panel = panel;
-      this._el = el;
-
-      // Re-apply overlay visibility after every basemap swap. The new style
-      // has visibility baked from localStorage at module load, but if the
-      // user toggled an overlay before swapping, the in-memory state is
-      // newer than the baked default — re-apply to be safe.
-      this._reapply = () => this._applyAllOverlays();
-      map.on('style.load', this._reapply);
-
-      // Outside-click to collapse. Use mousedown so the click feels
-      // immediate; passive touchstart for mobile.
-      this._onDocClick = (e) => {
-        if (this._expanded && !el.contains(e.target)) this._toggleExpanded(false);
+      this._basemapStyles = {
+        satellite: SATELLITE_STYLE,
+        simple: SIMPLE_STYLE
       };
-      document.addEventListener('mousedown', this._onDocClick);
-      document.addEventListener('touchstart', this._onDocClick, { passive: true });
+      this._basemapRadios = {};
+      this._overlayCheckboxes = {};
 
-      return el;
+      // Apply DOM-class overlays (pin labels) now so labels don't flash on
+      // first paint of markers. Layer-based overlays are already baked into
+      // the initial style via bakeInitialVisibility.
+      this._applyDomOverlays();
+
+      // After every basemap swap the new style is rebuilt from scratch, so
+      // re-apply current overlay state. (bakeInitialVisibility bakes from
+      // localStorage, but in-memory state is newer if the user toggled
+      // anything since page load.)
+      this._onStyleLoad = () => this._applyAllOverlays();
+      map.on('style.load', this._onStyleLoad);
     }
 
-    _buildBasemapGroup() {
-      const fs = document.createElement('fieldset');
-      fs.className = 'layers-group';
-      const lg = document.createElement('legend');
-      lg.textContent = 'Basemap';
-      fs.appendChild(lg);
+    renderInto(container) {
+      container.innerHTML = '';
+      container.appendChild(this._buildViewCluster());
+      container.appendChild(this._buildBasemapCluster());
+      container.appendChild(this._buildOverlayCluster());
+    }
+
+    // --- View cluster: zoom in, zoom out, reset --------------------------
+
+    _buildViewCluster() {
+      const cluster = document.createElement('div');
+      cluster.className = 'control-cluster control-cluster-view';
+      cluster.appendChild(this._clusterHeading('View'));
+
+      const zoomIn = this._iconButton('ti-plus', 'Zoom in', () => this._map.zoomIn(), 'zoom-in-btn');
+      const zoomOut = this._iconButton('ti-minus', 'Zoom out', () => this._map.zoomOut(), 'zoom-out-btn');
+      const reset = this._iconButton('ti-home', 'Reset view', () => this._resetView(), 'reset-btn');
+
+      cluster.appendChild(zoomIn);
+      cluster.appendChild(zoomOut);
+      cluster.appendChild(reset);
+      return cluster;
+    }
+
+    // Cluster heading is hidden on desktop (icons are self-explanatory in
+    // context) and shown in the mobile drawer where the layout is stacked.
+    // aria-hidden because the parent already exposes the same label via
+    // role + aria-label; rendering the text twice would double-announce.
+    _clusterHeading(text) {
+      const h = document.createElement('span');
+      h.className = 'cluster-heading';
+      h.textContent = text;
+      h.setAttribute('aria-hidden', 'true');
+      return h;
+    }
+
+    // Icon-only-by-default button. The visible text span is hidden on
+    // desktop via CSS but revealed in the mobile drawer for the buttons
+    // that remain there (currently only Reset).
+    _iconButton(iconClass, label, onClick, extraClass) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'control-btn' + (extraClass ? ' ' + extraClass : '');
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
+      btn.appendChild(makeIcon(iconClass));
+      const text = document.createElement('span');
+      text.className = 'control-btn-text';
+      text.textContent = label;
+      btn.appendChild(text);
+      btn.addEventListener('click', onClick);
+      return btn;
+    }
+
+    _resetView() {
+      this._map.flyTo({
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        pitch: DEFAULT_PITCH,
+        bearing: DEFAULT_BEARING
+      });
+    }
+
+    // --- Basemap cluster: Satellite / Street radios ----------------------
+
+    _buildBasemapCluster() {
+      const cluster = document.createElement('div');
+      cluster.className = 'control-cluster control-cluster-basemap';
+      cluster.setAttribute('role', 'radiogroup');
+      cluster.setAttribute('aria-label', 'Base map');
+      cluster.appendChild(this._clusterHeading('Base map'));
+
       this._basemapRadios = {};
-      for (const bm of this._basemaps) {
+      for (const bm of BASEMAPS) {
         const lbl = document.createElement('label');
-        lbl.className = 'layers-option';
+        lbl.className = 'basemap-option' + (bm.id === this._currentBasemap ? ' is-active' : '');
+
         const r = document.createElement('input');
         r.type = 'radio';
         r.name = 'jimmap-basemap';
         r.value = bm.id;
         r.checked = bm.id === this._currentBasemap;
         r.addEventListener('change', () => { if (r.checked) this._setBasemap(bm.id); });
+
         lbl.appendChild(r);
-        lbl.appendChild(document.createTextNode(' ' + bm.label));
-        fs.appendChild(lbl);
-        this._basemapRadios[bm.id] = r;
+        lbl.appendChild(makeIcon(bm.icon));
+        const text = document.createElement('span');
+        text.className = 'basemap-option-text';
+        text.textContent = bm.label;
+        lbl.appendChild(text);
+
+        cluster.appendChild(lbl);
+        this._basemapRadios[bm.id] = { input: r, label: lbl };
       }
-      return fs;
+      return cluster;
     }
 
-    _buildOverlayGroup() {
-      const fs = document.createElement('fieldset');
-      fs.className = 'layers-group layers-group-overlays';
-      const lg = document.createElement('legend');
-      lg.textContent = 'Overlays';
-      fs.appendChild(lg);
+    // --- Overlay cluster: grouped checkboxes -----------------------------
+
+    _buildOverlayCluster() {
+      const cluster = document.createElement('div');
+      cluster.className = 'control-cluster control-cluster-overlays';
+      cluster.appendChild(this._clusterHeading('Overlays'));
+
       this._overlayCheckboxes = {};
-      for (const o of OVERLAYS) {
-        const lbl = document.createElement('label');
-        lbl.className = 'layers-option';
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = !!this._overlayState[o.id];
-        cb.addEventListener('change', () => this._setOverlay(o.id, cb.checked));
-        lbl.appendChild(cb);
-        lbl.appendChild(document.createTextNode(' ' + o.label));
-        fs.appendChild(lbl);
-        this._overlayCheckboxes[o.id] = cb;
+      for (const g of OVERLAY_GROUPS) {
+        const sub = document.createElement('div');
+        sub.className = 'overlay-subgroup';
+        sub.setAttribute('role', 'group');
+        sub.setAttribute('aria-label', g.label);
+
+        const heading = document.createElement('span');
+        heading.className = 'overlay-subgroup-label';
+        heading.textContent = g.label;
+        heading.setAttribute('aria-hidden', 'true');
+        sub.appendChild(heading);
+
+        for (const o of OVERLAYS) {
+          if (o.group !== g.id) continue;
+          const lbl = document.createElement('label');
+          lbl.className = 'overlay-option';
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!this._overlayState[o.id];
+          cb.addEventListener('change', () => this._setOverlay(o.id, cb.checked));
+
+          lbl.appendChild(cb);
+          lbl.appendChild(makeIcon(o.icon || 'ti-stack-2'));
+          const text = document.createElement('span');
+          text.className = 'overlay-option-text';
+          text.textContent = o.label;
+          lbl.appendChild(text);
+
+          sub.appendChild(lbl);
+          this._overlayCheckboxes[o.id] = cb;
+        }
+
+        cluster.appendChild(sub);
       }
-      return fs;
+      return cluster;
     }
 
-    _toggleExpanded(force) {
-      const next = typeof force === 'boolean' ? force : !this._expanded;
-      if (next === this._expanded) return;
-      this._expanded = next;
-      this._el.classList.toggle('is-expanded', next);
-      this._panel.hidden = !next;
-      this._toggleBtn.setAttribute('aria-expanded', next ? 'true' : 'false');
-    }
+    // --- State transitions -----------------------------------------------
 
     _setBasemap(id) {
       if (id === this._currentBasemap) return;
-      const bm = this._basemaps.find((b) => b.id === id);
-      if (!bm) return;
+      const style = this._basemapStyles[id];
+      if (!style) return;
       this._currentBasemap = id;
       lsSet(BASEMAP_KEY, id);
-      this._map.setStyle(bm.style, { diff: false });
+      this._map.setStyle(style, { diff: false });
       for (const k in this._basemapRadios) {
-        this._basemapRadios[k].checked = k === id;
+        const entry = this._basemapRadios[k];
+        entry.input.checked = k === id;
+        entry.label.classList.toggle('is-active', k === id);
       }
     }
 
@@ -651,14 +725,22 @@
     }
 
     _applyOverlay(id) {
-      if (!this._map) return;
       const o = OVERLAYS.find((x) => x.id === id);
       if (!o) return;
-      const visibility = this._overlayState[id] ? 'visible' : 'none';
-      for (const layerId of o.layerIds) {
-        if (this._map.getLayer(layerId)) {
-          this._map.setLayoutProperty(layerId, 'visibility', visibility);
+      const on = !!this._overlayState[id];
+
+      if (o.layerIds && o.layerIds.length && this._map) {
+        const visibility = on ? 'visible' : 'none';
+        for (const layerId of o.layerIds) {
+          if (this._map.getLayer(layerId)) {
+            this._map.setLayoutProperty(layerId, 'visibility', visibility);
+          }
         }
+      }
+
+      if (o.domClass) {
+        const mapEl = document.getElementById('map');
+        if (mapEl) mapEl.classList.toggle(o.domClass, !on);
       }
     }
 
@@ -666,13 +748,55 @@
       for (const o of OVERLAYS) this._applyOverlay(o.id);
     }
 
-    onRemove() {
-      if (this._map && this._reapply) this._map.off('style.load', this._reapply);
-      document.removeEventListener('mousedown', this._onDocClick);
-      document.removeEventListener('touchstart', this._onDocClick);
-      if (this._el && this._el.parentNode) this._el.parentNode.removeChild(this._el);
-      this._map = undefined;
+    _applyDomOverlays() {
+      const mapEl = document.getElementById('map');
+      if (!mapEl) return;
+      for (const o of OVERLAYS) {
+        if (!o.domClass) continue;
+        mapEl.classList.toggle(o.domClass, !this._overlayState[o.id]);
+      }
     }
+  }
+
+  // --- Drawer (mobile) ---------------------------------------------------
+  // Hamburger button in the header toggles a class on the header element.
+  // CSS handles the actual drop-down visuals + responsive show/hide of the
+  // toggle button itself.
+
+  function attachDrawer() {
+    const header = document.getElementById('site-header');
+    const toggle = document.getElementById('drawer-toggle');
+    if (!header || !toggle) return;
+
+    const setOpen = (open) => {
+      header.classList.toggle('drawer-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-label', open ? 'Close map controls' : 'Open map controls');
+    };
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setOpen(!header.classList.contains('drawer-open'));
+    });
+
+    // Outside click / tap closes. Use mousedown so the close feels immediate.
+    const onDocPointer = (e) => {
+      if (!header.classList.contains('drawer-open')) return;
+      if (!header.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocPointer);
+    document.addEventListener('touchstart', onDocPointer, { passive: true });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && header.classList.contains('drawer-open')) setOpen(false);
+    });
+  }
+
+  function attachMobileZoom(map) {
+    const zin = document.getElementById('mobile-zoom-in');
+    const zout = document.getElementById('mobile-zoom-out');
+    if (zin) zin.addEventListener('click', () => map.zoomIn());
+    if (zout) zout.addEventListener('click', () => map.zoomOut());
   }
 
   // --- Hover tooltip -----------------------------------------------------
@@ -735,17 +859,6 @@
       hash: false,
       attributionControl: { compact: true }
     });
-
-    map.addControl(
-      new maplibregl.NavigationControl({ visualizePitch: true, showCompass: true }),
-      'top-right'
-    );
-    map.addControl(new LayersControl({
-      basemaps: [
-        { id: 'satellite', label: 'Satellite', style: SATELLITE_STYLE },
-        { id: 'simple', label: 'Simple', style: SIMPLE_STYLE }
-      ]
-    }), 'top-right');
 
     map.on('error', (e) => {
       console.error('[map error]', e && e.error ? e.error : e);
@@ -864,6 +977,11 @@
   showLoading(true);
   const map = buildMap();
   attachTooltipHandlers(map);
+
+  const layersControl = new LayersControl(map);
+  layersControl.renderInto(document.getElementById('map-controls'));
+  attachDrawer();
+  attachMobileZoom(map);
 
   // After every style swap, re-apply visibility (handled by LayersControl)
   // and re-push the geojson data into the new sources.

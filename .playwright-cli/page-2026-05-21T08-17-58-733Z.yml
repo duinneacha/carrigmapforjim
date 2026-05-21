@@ -1,0 +1,87 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - heading "Carrigtwohill Parish" [level=1] [ref=e4]
+      - paragraph [ref=e5]: Historical places
+    - button "Open map controls" [ref=e6] [cursor=pointer]:
+      - generic [ref=e7]: 
+      - text: 
+    - text:          𐂖
+  - main [ref=e8]:
+    - region "Interactive map of historical places" [ref=e9]:
+      - generic:
+        - region "Map" [ref=e10]
+        - button "Ballyannan Castle" [ref=e11] [cursor=pointer]:
+          - generic: Ballyannan Castle
+        - button "Ballyvodock Castle" [ref=e12] [cursor=pointer]:
+          - generic: Ballyvodock Castle
+        - button "Leamlara House" [ref=e13] [cursor=pointer]:
+          - generic: Leamlara House
+        - button "St. Mary's Parish Church, Carrigtwohill" [ref=e14] [cursor=pointer]:
+          - generic: St. Mary's Parish Church, Carrigtwohill
+        - button "Barrett's Field" [ref=e15] [cursor=pointer]:
+          - generic: Barrett's Field
+        - button "Killacloyne Church" [ref=e16] [cursor=pointer]:
+          - generic: Killacloyne Church
+        - button "Lois Ameraidh" [ref=e17] [cursor=pointer]:
+          - generic: Lois Ameraidh
+        - button "Tobairin na Casa" [ref=e18] [cursor=pointer]:
+          - generic: Tobairin na Casa
+        - button "Tobar Bo Finne" [ref=e19] [cursor=pointer]:
+          - generic: Tobar Bo Finne
+        - button "Daibhi de Barra" [ref=e20] [cursor=pointer]:
+          - generic: Daibhi de Barra
+        - button "Cash's Place" [ref=e21] [cursor=pointer]:
+          - generic: Cash's Place
+        - button "Spring Hill Church" [ref=e22] [cursor=pointer]:
+          - generic: Spring Hill Church
+        - button "Anngrove House" [ref=e23] [cursor=pointer]:
+          - generic: Anngrove House
+        - button "Tibbotstown Reservoir" [ref=e24] [cursor=pointer]:
+          - generic: Tibbotstown Reservoir
+        - button "Templeacurraheen Graveyard" [ref=e25] [cursor=pointer]:
+          - generic: Templeacurraheen Graveyard
+        - button "Broe's Forge" [ref=e26] [cursor=pointer]:
+          - generic: Broe's Forge
+        - button "Lackabeha Fort" [ref=e27] [cursor=pointer]:
+          - generic: Lackabeha Fort
+        - button "Woodstock House" [ref=e28] [cursor=pointer]:
+          - generic: Woodstock House
+        - button "The Curragh Fort" [ref=e29] [cursor=pointer]:
+          - generic: The Curragh Fort
+        - button "Ballycurrany Graveyard" [ref=e30] [cursor=pointer]:
+          - generic: Ballycurrany Graveyard
+        - button "Knockaheem Forge" [ref=e31] [cursor=pointer]:
+          - generic: Knockaheem Forge
+        - button "The Ring View Bar" [ref=e32] [cursor=pointer]:
+          - generic: The Ring View Bar
+        - button "Midleton Waterworks" [ref=e33] [cursor=pointer]:
+          - generic: Midleton Waterworks
+        - button "Midleton Water Source" [ref=e34] [cursor=pointer]:
+          - generic: Midleton Water Source
+        - button "Old Graveyard" [ref=e35] [cursor=pointer]:
+          - generic: Old Graveyard
+        - button "The 3 Chimney House" [ref=e36] [cursor=pointer]:
+          - generic: The 3 Chimney House
+        - button "Leaba Bó Bainne" [ref=e37] [cursor=pointer]:
+          - generic: Leaba Bó Bainne
+        - button "Barry's Shop, Gurranes" [ref=e38] [cursor=pointer]:
+          - generic: Barry's Shop, Gurranes
+        - button "Kluxe's Dance Hall" [ref=e39] [cursor=pointer]:
+          - generic: Kluxe's Dance Hall
+        - button "Kluxe's Fort" [ref=e40] [cursor=pointer]:
+          - generic: Kluxe's Fort
+        - button "Finn's Fort" [ref=e41] [cursor=pointer]:
+          - generic: Finn's Fort
+        - button "Mulcahy's Fort" [ref=e42] [cursor=pointer]:
+          - generic: Mulcahy's Fort
+      - group [ref=e43]:
+        - generic "Toggle attribution" [ref=e44] [cursor=pointer]
+        - generic [ref=e45]: "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+    - group "Zoom" [ref=e46]:
+      - button "Zoom in" [ref=e47] [cursor=pointer]:
+        - generic [ref=e48]: 
+      - button "Zoom out" [ref=e49] [cursor=pointer]:
+        - generic [ref=e50]: 
+  - contentinfo [ref=e51]:
+    - paragraph [ref=e52]: © Carrigtwohill Historical Society. Text and images remain the property of their respective contributors and are reproduced with permission.

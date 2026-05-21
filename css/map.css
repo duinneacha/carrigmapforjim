@@ -25,18 +25,19 @@ body {
 }
 
 .site-header {
-  padding: 1.25rem 1.5rem 1rem;
+  position: relative; /* anchors the mobile drawer */
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--rule);
   background: var(--paper-2);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
 }
 
 .site-header-text {
   min-width: 0;
+  flex: 0 1 auto;
 }
 
 .site-header h1 {
@@ -51,6 +52,11 @@ body {
   font-style: italic;
   font-size: 0.95rem;
 }
+
+/* Dual-title spans — full text on desktop, shortened on mobile. CSS keeps
+   the swap declarative; JS doesn't need to rewrite text on resize. */
+.site-header-short { display: none; }
+.site-header-full { display: inline; }
 
 main {
   flex: 1;
@@ -82,110 +88,201 @@ main {
 
 .map-error { background: #fff3f1; color: #7a1f12; border: 1px solid #7a1f12; }
 
-/* MapLibre control polish */
-.maplibregl-ctrl-group {
+/* --- Drawer toggle (hamburger) — mobile only ------------------------- */
+.drawer-toggle {
+  display: none; /* shown via media query on mobile */
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto; /* push to right edge in flex row */
+  background: #fff;
+  border: 0.5px solid var(--rule);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 20px;
+  cursor: pointer;
+}
+.drawer-toggle:hover { background: var(--paper-2); color: var(--accent-dark); }
+.drawer-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* Icon swap: menu → x when drawer open. */
+.drawer-toggle .ti-x { display: none; }
+.site-header.drawer-open .drawer-toggle .ti-menu-2 { display: none; }
+.site-header.drawer-open .drawer-toggle .ti-x { display: inline-block; }
+
+/* --- Map controls container ----------------------------------------- */
+.map-controls {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   font-family: Georgia, serif;
+  color: var(--ink);
 }
 
-/* Collapsible layers control: a layers-glyph button that expands into a
-   panel with a basemap radio group and an overlay checkbox group. */
-.layers-control {
-  border: 1px solid var(--ink);
-  border-radius: 4px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(28, 26, 23, 0.35);
-  overflow: hidden;
+/* --- Cluster (View / Base map / Overlays) --------------------------- */
+.control-cluster {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 0.5px solid var(--rule);
+  border-radius: 8px;
+  padding: 4px;
 }
 
-.layers-toggle {
-  display: block;
-  width: 30px;
-  height: 30px;
-  padding: 0;
+/* Cluster heading is for the mobile drawer; hidden on desktop where the
+   icons are self-explanatory in the header context. */
+.cluster-heading {
+  display: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.25rem 0.25rem 0.4rem;
+}
+
+/* --- Generic control button (icon-only on desktop) ------------------ */
+.control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   background: #fff;
-  border: 0;
+  border: 0.5px solid transparent;
+  border-radius: 6px;
   cursor: pointer;
   color: var(--ink);
-  line-height: 0;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.12s ease, color 0.12s ease;
 }
+.control-btn:hover { background: var(--paper-2); color: var(--accent-dark); }
+.control-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-.layers-toggle:hover {
-  background: var(--paper-2);
-  color: var(--accent-dark);
+/* Hide the text span — desktop buttons are icon-only. Revealed on mobile
+   inside the drawer for buttons that remain there. */
+.control-btn-text { display: none; }
+
+/* --- Base map cluster (segmented icon-radios) ---------------------- */
+.basemap-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  font-family: Georgia, serif;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
 }
-
-.layers-toggle:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: -2px;
-}
-
-.layers-toggle svg {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.layers-control.is-expanded .layers-toggle {
-  background: var(--accent);
-  color: #fff;
-}
-
-.layers-panel {
-  border-top: 1px solid var(--rule);
-  background: #fff;
-  padding: 0.5rem 0.75rem 0.75rem;
-  font: inherit;
-  font-size: 0.92rem;
-  color: var(--ink);
-  width: max-content;
-  max-width: min(280px, 75vw);
-}
-
-.layers-panel[hidden] { display: none; }
-
-.layers-group {
-  border: 0;
+/* Visually-hidden but focusable native radio. */
+.basemap-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
   margin: 0;
-  padding: 0.15rem 0 0;
+  cursor: pointer;
+}
+.basemap-option .ti { font-size: 16px; }
+.basemap-option:hover { color: var(--ink); }
+.basemap-option.is-active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(28, 26, 23, 0.12);
+}
+.basemap-option:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
-.layers-group-overlays {
-  border-top: 1px solid var(--rule);
-  margin-top: 0.5rem;
-  padding-top: 0.4rem;
+/* --- Overlays cluster (grouped checkboxes) ------------------------- */
+.control-cluster-overlays {
+  gap: 0.5rem;
+  padding: 4px 8px;
 }
 
-.layers-group legend {
-  font-size: 0.78rem;
+.overlay-subgroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.overlay-subgroup-label {
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  padding: 0;
-  margin-bottom: 0.25rem;
+  padding: 0 4px 0 2px;
 }
 
-.layers-option {
-  display: flex;
+.overlay-option {
+  display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.18rem 0;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 0.88rem;
+  font-family: Georgia, serif;
+  color: var(--ink);
+  background: transparent;
   user-select: none;
-  line-height: 1.25;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
 }
-
-.layers-option:hover { color: var(--accent-dark); }
-
-.layers-option input {
+.overlay-option input {
   margin: 0;
   accent-color: var(--accent);
   flex-shrink: 0;
+  cursor: pointer;
+}
+.overlay-option .ti {
+  font-size: 15px;
+  color: var(--ink-soft);
+  transition: color 0.12s ease;
+}
+.overlay-option:hover { color: var(--accent-dark); background: rgba(255, 255, 255, 0.5); }
+.overlay-option:hover .ti { color: var(--accent-dark); }
+.overlay-option:has(input:checked) { background: #fff; color: var(--ink); }
+.overlay-option:has(input:checked) .ti { color: var(--accent-dark); }
+.overlay-option:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* --- Mobile-only zoom buttons over the map -------------------------- */
+.mobile-zoom {
+  display: none; /* shown via media query on mobile */
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 400;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 0.5px solid var(--rule);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+.mobile-zoom .control-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 16px;
 }
 
-.layers-option input:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
+/* --- Pin-labels overlay (DOM-class toggle) -------------------------- */
+/* Set on #map by LayersControl when the pinLabels overlay is OFF. */
+#map.hide-pin-labels .map-pin-label { display: none; }
 
 /* Custom DOM marker (button with an SVG background). MapLibre adds its own
    `.maplibregl-marker { position: absolute }` to this element, which doubles
@@ -374,8 +471,97 @@ main {
   background: var(--paper-2);
 }
 
-@media (max-width: 600px) {
-  .site-header h1 { font-size: 1.2rem; }
+/* --- Responsive: drawer takes over below 768px --------------------- */
+@media (max-width: 767px) {
+  .site-header {
+    padding: 0.7rem 1rem;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .site-header h1 { font-size: 1.15rem; line-height: 1.15; }
+  .site-header .tagline { font-size: 0.78rem; margin-top: 0.1rem; }
+
+  .site-header-full { display: none; }
+  .site-header-short { display: inline; }
+
+  .drawer-toggle { display: inline-flex; }
+
+  /* Drawer: drops below the header, pushing the map down (not overlay). */
+  .map-controls {
+    display: none;
+    flex-basis: 100%;
+    order: 99; /* keep drawer below the header row */
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0 0;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  .site-header.drawer-open .map-controls { display: flex; }
+
+  /* Stacked clusters with section headings visible. */
+  .control-cluster {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 0.5rem;
+    background: #fff;
+  }
+  .cluster-heading { display: block; }
+
+  /* View cluster: drop zoom buttons, show reset with text label full-width. */
+  .control-cluster-view .zoom-in-btn,
+  .control-cluster-view .zoom-out-btn { display: none; }
+  .control-cluster-view .control-btn {
+    width: 100%;
+    height: 40px;
+    justify-content: flex-start;
+    padding: 0 0.75rem;
+    gap: 0.6rem;
+  }
+  .control-cluster-view .control-btn-text { display: inline; font-size: 0.95rem; }
+
+  /* Basemap: stack radios full-width. */
+  .control-cluster-basemap { padding: 0.4rem; }
+  .basemap-option {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    justify-content: flex-start;
+    border-radius: 6px;
+  }
+  .basemap-option:not(.is-active) { background: var(--paper-2); }
+
+  /* Overlays: subgroups stacked, options stacked within. */
+  .control-cluster-overlays {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  .overlay-subgroup {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+  .overlay-subgroup-label {
+    padding: 0 0 0.25rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.25rem;
+  }
+  .overlay-option {
+    padding: 0.5rem 0.6rem;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .overlay-option:not(:hover):not(:focus-within):has(input:checked) {
+    background: var(--paper-2);
+  }
+
+  /* Mobile zoom buttons appear floating on the map. */
+  .mobile-zoom { display: flex; }
+
   #map { min-height: 70vh; }
   .modal-panel { padding: 1.25rem 1rem 1rem; }
 }

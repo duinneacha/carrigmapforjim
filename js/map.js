@@ -38,6 +38,15 @@
   const modalPanel = modalEl.querySelector('.modal-panel');
   let lastFocused = null;
 
+  // True when the place would render meaningful body content on place.html.
+  // Mirrors what renderBlock in place.js actually draws; without this we'd
+  // link to a near-empty detail page for the 22 places that have only
+  // metadata + an optional preview blurb.
+  function hasFurtherInfo(place) {
+    if (!place || !Array.isArray(place.sections)) return false;
+    return place.sections.some((s) => Array.isArray(s.blocks) && s.blocks.length > 0);
+  }
+
   function openModal(place) {
     lastFocused = document.activeElement;
 
@@ -63,7 +72,14 @@
     }
 
     const link = document.getElementById('preview-link');
-    link.href = PlacesData.placeUrl(place.id);
+    const actions = link.parentElement;
+    if (hasFurtherInfo(place)) {
+      link.href = PlacesData.placeUrl(place.id);
+      actions.hidden = false;
+    } else {
+      link.removeAttribute('href');
+      actions.hidden = true;
+    }
 
     modalEl.hidden = false;
     requestAnimationFrame(() => modalPanel.focus());
